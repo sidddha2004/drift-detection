@@ -1,0 +1,48 @@
+# Federated Learning Configuration
+
+federated:
+  # Trigger sync every N adaptation cycles
+  sync_interval_adaptations: 5
+
+  # OR trigger sync every T minutes (whichever comes first)
+  sync_interval_minutes: 10
+
+  # Encryption mode: simulated | aes256 | tls
+  encryption: simulated
+
+  # Aggregation algorithm
+  aggregation: fedavg  # Options: fedavg, fedprox, qfedavg
+
+# Server configuration
+server:
+  # Number of clients expected
+  num_clients: 9
+
+  # Minimum clients required for aggregation
+  min_clients: 3
+
+  # Server port (for real networked deployment)
+  port: 5000
+
+# Client configuration
+client:
+  # Local sample count weighting (for FedAvg)
+  use_sample_weighting: true
+
+  # Weight quantization for compression (bits)
+  # Set to 32 for no compression, 8 or 16 for compressed
+  quantization_bits: 32
+
+  # Upload only if accuracy improved by this threshold
+  upload_threshold: 0.0  # Always upload
+
+# Simulation settings
+simulation:
+  # Run in single-process mode (True) or networked (False)
+  single_process: true
+
+  # Communication delay simulation (ms)
+  comm_delay_ms: 0
+
+  # Packet loss simulation (probability)
+  packet_loss: 0.0

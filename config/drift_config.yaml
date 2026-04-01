@@ -1,0 +1,36 @@
+# Drift Injection Configuration
+
+injection:
+  # Sample indices where drift is injected
+  points: [5000, 15000, 25000]
+
+  # Drift magnitudes in g-units (accelerometer)
+  magnitudes: [0.5, 1.0, 2.0]
+
+  # Types of drift to inject
+  types: [sudden, gradual, recurring, feature_level]
+
+# Gradual drift parameters
+gradual:
+  # Number of samples over which drift ramps up
+  ramp_samples: 5000
+
+# Recurring drift parameters
+recurring:
+  # Period in samples (drift repeats every P samples)
+  period: 10000
+  # Duration in samples (drift is active for D samples per period)
+  duration: 2000
+
+# Feature-level drift parameters
+feature_level:
+  # Which axis to apply drift to
+  # Options: wrist_x, wrist_y, wrist_z, chest_x, chest_y, chest_z, ankle_x, ankle_y, ankle_z
+  target_axis: wrist_x
+
+# Global drift settings
+global:
+  # Random seed for reproducibility
+  seed: 42
+  # Apply drift to all subjects or specific ones
+  subjects: "all"  # or list: [101, 105, 106]

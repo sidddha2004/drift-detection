@@ -1,0 +1,73 @@
+
+1>>
+Here's why drift detection matters vs. just periodic retraining:
+
+  The Key Difference
+
+  ┌──────────────────┬─────────────────────────────────┬───────────────────────────────────────────────────────────┐
+  │     Approach     │        When to Retrain?         │                          Problem                          │
+  ├──────────────────┼─────────────────────────────────┼───────────────────────────────────────────────────────────┤
+  │ Periodic         │ Fixed schedule (e.g., every     │ Wastes compute if data hasn't changed; misses sudden      │
+  │ Retraining       │ week)                           │ drops between schedules                                   │
+  ├──────────────────┼─────────────────────────────────┼───────────────────────────────────────────────────────────┤
+  │ Drift Detection  │ Only when distribution actually │ Efficient, responsive, adaptive                           │
+  │                  │  changes                        │                                                           │
+  └──────────────────┴─────────────────────────────────┴───────────────────────────────────────────────────────────┘
+
+  Why Not Just Retrain on "New Data"?
+
+  1. You Don't Know When Drift Happens
+
+  - Drift could happen day 3 or day 30
+  - Without detection, you're either:
+    - Retraining too often (wasted compute on edge device)
+    - Retraining too late (users experience degraded accuracy)
+
+  2. Not All Performance Drops Are Equal
+
+  Different drift types need different responses:
+
+  ┌───────────────┬──────────────────────────────────────────────────┬──────────────────────┬─────────────────────┐
+  │  Drift Type   │                  What Happened                   │    Wrong Response    │   Right Response    │
+  ├───────────────┼──────────────────────────────────────────────────┼──────────────────────┼─────────────────────┤
+  │ Sudden        │ User started new job (different motion patterns) │ Fine-tuning          │ Full retrain        │
+  ├───────────────┼──────────────────────────────────────────────────┼──────────────────────┼─────────────────────┤
+  │ Gradual       │ Fitness improvement (slowly running faster)      │ Full retrain         │ Fine-tuning         │
+  ├───────────────┼──────────────────────────────────────────────────┼──────────────────────┼─────────────────────┤
+  │ Recurring     │ Day/night pattern                                │ Retrain from scratch │ Load stored model   │
+  ├───────────────┼──────────────────────────────────────────────────┼──────────────────────┼─────────────────────┤
+  │ Feature-Level │ Sensor calibration drift                         │ Retrain entire model │ Sensor compensation │
+  └───────────────┴──────────────────────────────────────────────────┴──────────────────────┴─────────────────────┘
+
+  3. Edge Device Constraints
+
+  On a Raspberry Pi Zero (512MB RAM):
+  - Training is expensive (battery, compute, time)
+  - You can't afford to retrain "just in case"
+  - Drift detection triggers adaptation only when needed
+
+  4. Catastrophic Forgetting
+
+  Blind retraining on new data causes the model to forget old patterns. Drift-type-specific adaptation:
+  - Sudden → discard old data (it's obsolete)
+  - Gradual → keep some history (avoid forgetting)
+  - Recurring → reuse old model (no forgetting)
+
+  Bottom Line
+
+  ▎ Drift detection answers: "When should I adapt, and how?"
+
+  ▎ Without it, you're guessing—wasting resources or losing accuracy.
+
+
+  2>>>
+  Here is the exact logic the primary rule-based classifier follows:
+
+Sudden Drift: Identified if the model's accuracy tanks drastically and quickly.
+Rule: error_slope > 0.05 AND error_variance > 0.3
+Gradual Drift: Identified if the model's errors are slowly and steadily creeping up.
+Rule: 0.01 < error_slope <= 0.05
+Recurring Drift: Identified if the exact shape and pattern of the errors matches something saved in the "Concept Memory" store from a previous occurrence.
+Rule: memory_match_score > 0.85
+Feature-Level Drift: Identified if the raw data variance spikes dramatically, but the predictive error slope isn't actually that steep (indicating the problem is strongly isolated to specific features/axes).
+Rule: raw_variance_shift > 2.0 AND error_slope < 0.01

@@ -1,26 +1,29 @@
 # Model Architecture and Training Configuration
+# LSTM-only architecture (MLP removed)
 
-mlp:
-  # Input features: 3 axes × 3 sensors × 5 statistics = 45
-  input_dim: 45
-  # Hidden layer size
-  hidden_dim: 32
-  # Output: 18 activity classes (PAMAP2 IDs 1-24, excluding 0)
+# LSTM model configuration (for temporal pattern recognition)
+lstm:
+  # Input: raw accelerometer (9 axes from 3 sensors)
+  input_size: 9
+  # Sequence length: 256 samples (2.56s @ 100Hz)
+  seq_len: 256
+  # LSTM architecture
+  hidden_size: 64
+  num_layers: 2
+  dropout: 0.3
+  bidirectional: false
+
+  # Output: 18 activity classes
   output_dim: 18
-  # Activation function
-  activation: relu
 
-  # Training hyperparameters
-  learning_rate: 0.01
-  momentum: 0.9
+  # Training hyperparameters (Adam optimizer)
+  learning_rate: 0.001
   weight_decay: 0.0001
-
-  # Mini-batch settings
-  batch_size: 32
-  epochs_per_update: 5
+  batch_size: 64
+  epochs: 20
 
   # Fine-tuning (during adaptation)
-  adaptation_lr: 0.1
+  adaptation_lr: 0.0005
   adaptation_epochs: 10
 
 # ADWIN drift detector configuration

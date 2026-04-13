@@ -198,16 +198,21 @@ class DataStreamPipeline:
     Complete data pipeline: raw data → windows → features → labels.
 
     Combines preprocessing, windowing, and feature extraction.
+
+    For LSTM: set return_raw_windows=True to get (n_windows, 256, 9)
+    For MLP: set return_features=True to get (n_windows, 45)
     """
 
     def __init__(
         self,
         windowing_config: Optional[WindowingConfig] = None,
-        return_features: bool = True
+        return_features: bool = True,
+        return_raw_windows: bool = False
     ):
         self.window_generator = SlidingWindowGenerator(windowing_config)
         self.feature_extractor = FeatureExtractor(windowing_config)
         self.return_features = return_features
+        self.return_raw_windows = return_raw_windows
 
     def process(
         self,
@@ -215,29 +220,35 @@ class DataStreamPipeline:
         activity_labels: np.ndarray
     ) -> Tuple[np.ndarray, np.ndarray]:
         """
-        Process raw accelerometer data into features and labels.
+        Process raw accelerometer data.
 
         Args:
             accel_data: Shape (n_samples, 9) - preprocessed accelerometer
             activity_labels: Shape (n_samples,) - activity IDs
 
         Returns:
-            Tuple of (features, labels)
-            - features: Shape (n_windows, 45)
-            - labels: Shape (n_windows,)
+            Tuple of (output, labels) where output is:
+            - If return_raw_windows: (n_windows, window_size, 9)
+            - Elif return_features: (n_windows, 45)
+            - Else: (n_windows, window_size * 9) flattened
         """
         # Generate sliding windows
         windows, window_labels = self.window_generator.generate_windows(
             accel_data, activity_labels
         )
 
-        # Extract features
-        if self.return_features:
+        # Return based on mode
+        if self.return_raw_windows:
+            # Raw windows for LSTM: (n_windows, 256, 9)
+            return windows, window_labels
+        elif self.return_features:
+            # Statistical features for MLP: (n_windows, 45)
             features = self.feature_extractor.extract_features_batch(windows)
+            return features, window_labels
         else:
-            features = windows.reshape(windows.shape[0], -1)  # Flatten windows
-
-        return features, window_labels
+            # Flattened windows
+            features = windows.reshape(windows.shape[0], -1)
+            return features, window_labels
 
     def process_streaming(
         self,
@@ -268,25 +279,34 @@ class DataStreamPipeline:
 def create_data_pipeline(
     window_size: int = 256,
     stride: int = 128,
-    return_features: bool = True
+    return_features: bool = True,
+    return_raw_windows: bool = False
 ) -> DataStreamPipeline:
     """
-    Factory function to create a data pipeline with custom parameters.
+    Factory function to create a data pipeline.
 
     Args:
         window_size: Window size in samples
         stride: Stride in samples
-        return_features: Whether to extract statistical features
+        return_features: Extract statistical features (for MLP)
+        return_raw_windows: Return raw windows (for LSTM)
 
     Returns:
         Configured DataStreamPipeline
+
+    Usage:
+        # For MLP (45 features per window)
+        pipeline = create_data_pipeline(return_features=True)
+
+        # For LSTM (raw 256x9 windows)
+        pipeline = create_data_pipeline(return_raw_windows=True)
     """
     config = WindowingConfig(
         window_size=window_size,
         stride=stride,
         sampling_freq=100
     )
-    return DataStreamPipeline(config, return_features)
+    return DataStreamPipeline(config, return_features, return_raw_windows)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,49 @@
+{
+  "seed": 42,
+  "n_clients": 2,
+  "n_rounds": 1,
+  "n_classes": 12,
+  "subject_ids": [
+    101,
+    102
+  ],
+  "drift_probability": 0.5,
+  "train_ratio": 0.8,
+  "window_size": 256,
+  "stride": 128,
+  "final_global_accuracy": 0.051314141999379975,
+  "average_global_accuracy": 0.051314141999379975,
+  "drift_rounds": 1,
+  "rounds": [
+    {
+      "round_num": 1,
+      "drifted_clients": [
+        102
+      ],
+      "drift_events": [
+        {
+          "round_num": 1,
+          "client_id": 102,
+          "subject_id": 102,
+          "drift_type": "gradual",
+          "magnitude": 1.1973680290593638,
+          "injection_point": 41522,
+          "n_samples_affected": 169157
+        }
+      ],
+      "pre_sync_client_accuracies": {
+        "101": 0.005141388159245253,
+        "102": 0.09512194991111755
+      },
+      "post_sync_client_accuracies": {
+        "101": 0.005141388159245253,
+        "102": 0.09512194991111755
+      },
+      "drifted_client_accuracy": 0.09512194991111755,
+      "non_drifted_client_accuracy": 0.005141388159245253,
+      "global_accuracy": 0.051314141999379975,
+      "mean_pre_sync_accuracy": 0.0501316690351814,
+      "mean_post_sync_accuracy": 0.0501316690351814
+    }
+  ]
+}

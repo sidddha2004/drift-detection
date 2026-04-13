@@ -1,11 +1,4 @@
 # Drift Detection Module
-from .binary_detector import (
-    ActivityMLP,
-    BinaryDriftDetector,
-    EdgeClient,
-    MLPConfig,
-    ADWINConfig
-)
 from .drift_classifier import (
     DriftClassifier,
     DriftFeatureExtractor,
@@ -13,16 +6,31 @@ from .drift_classifier import (
     DriftClass,
     DriftClassifierConfig
 )
+from .lstm_model import (
+    ActivityLSTM,
+    LSTMDriftDetector,
+    LSTMConfig
+)
+from .integrated_detector import (
+    IntegratedDriftDetector,
+    IntegratedDriftDetectorConfig,
+    FederatedIntegratedDriftDetector,
+    FederatedIntegratedDriftDetectorConfig,
+    FLSyncResult
+)
 
 __all__ = [
-    'ActivityMLP',
-    'BinaryDriftDetector',
-    'EdgeClient',
-    'MLPConfig',
-    'ADWINConfig',
+    'ActivityLSTM',
+    'LSTMDriftDetector',
+    'LSTMConfig',
     'DriftClassifier',
     'DriftFeatureExtractor',
     'StageBDetector',
     'DriftClass',
-    'DriftClassifierConfig'
+    'DriftClassifierConfig',
+    'IntegratedDriftDetector',
+    'IntegratedDriftDetectorConfig',
+    'FederatedIntegratedDriftDetector',
+    'FederatedIntegratedDriftDetectorConfig',
+    'FLSyncResult'
 ]

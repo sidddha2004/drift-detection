@@ -39,7 +39,7 @@ def test_preprocessing():
 
     # Find a data file
     base_dirs = [
-        "PAMAP2_Dataset/Protocol",
+        "fl-drift-try_2\PAMAP2_Dataset\Protocol",
         "../PAMAP2_Dataset/Protocol",
         "../../PAMAP2_Dataset/Protocol"
     ]

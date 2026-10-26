@@ -18,7 +18,7 @@ train:
   hidden_size: 64
   num_layers: 2
 budget:
-  total_epochs: 60        # E1/E2 epochs; E3 = rounds x local_epochs
+  total_epochs: 120       # E1/E2 epochs (locked at 2x the initial budget, see decisions D11)
   fedavg_local_epochs: 2
-  fedavg_rounds: 30
+  fedavg_rounds: 60
 seeds: [42, 123, 999, 2024, 7]

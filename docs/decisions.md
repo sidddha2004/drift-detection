@@ -16,6 +16,11 @@ Newest entries at the bottom of each section. Plan of record: `docs/RESEARCH_PLA
 | D7 | Repo restructure and commits approved. Work on feature branches, small commits. |
 | D8 | Statistics: 5 seeds (42, 123, 999, 2024, 7), bootstrap 95% CIs, Wilcoxon + Holm, hyperparameters tuned on S0 + a held-out validation schedule only. |
 
+| D9 | **8 clients, not 9**: subject 109 is excluded (a single 64 s rope-jumping bout, ~46 windows, 1 class). Subjects 101-108. |
+| D10 | **Stationary control S0 = `blocked` split** (contiguous 16-window blocks assigned at random to train/val/test, purge between splits). The `temporal` split (test = last 25% of each bout) is kept as a **natural-drift probe**, not as the control. |
+| D11 | **Locked baseline budget**: FedAvg 60 rounds x 2 local epochs; E1/E2 120 epochs; checkpoint chosen by mean client val macro-F1. The initial 30-round budget under-trained FedAvg (0.831 -> 0.851 at 2x). Use this budget for every method in later phases. |
+| D12 | Model channels = the **9 correct +-16g accelerometer axes** (cols 4-6, 21-23, 38-40). Primary metric = macro-F1; report worst-client too. |
+
 ## 2. Audit findings still open (from the initial audit; ids used in the plan)
 
 | id | Finding | Fix lands in |
@@ -32,6 +37,8 @@ Newest entries at the bottom of each section. Plan of record: `docs/RESEARCH_PLA
 | A10 | `LSTMDriftDetector` has no device handling (CPU only); GPU use needs the new engine | Phase 4 |
 | A11 | `DriftInjector.get_drift_mask` uses `injection_point or default`, so an explicit 0 is ignored (xfail test) | Phase 2 |
 | A12 | Drift classifier scored 69% overall and 0% on SUDDEN, only on synthetic error streams | Phase 3 (WP1b) |
+| A14 | **Wrong channel indices**: old code used columns 3/20/37 = IMU *temperature* (+ two acc axes per IMU, no z). **Fixed in new `src/data` loader** (old `src/data_pipeline` still has it; retire in Phase 2/4). Evidence: with the interleaved split, temperature-only gets macro-F1 0.836 and the old channel set (0.913) beats the correct accelerometers (0.874), i.e. temperature leaks the label via sensor warm-up. | done (new loader) |
+| A15 | PAMAP2 has **natural temporal shift inside an activity**: temporal-vs-blocked test macro-F1 drops 6-8 pts for every method with no injected drift. Use it as natural-drift evidence (risk register) and keep it out of the S0 control. | used in Phase 2+ |
 | A13 | Modules use mixed import styles (`from src.x` and `sys.path` hacks such as `from drift_detection...`) | Phase 4 |
 
 ## 3. Facts verified (use these, not the docx)
@@ -39,6 +46,11 @@ Newest entries at the bottom of each section. Plan of record: `docs/RESEARCH_PLA
 - LSTM (9 -> 64 x2 -> 18) has **53,650 parameters** (~209.6 KB FP32). The plan docx's "77K / 308 KB" is wrong.
 - ADWIN is `river` 0.23.0. Python 3.13.2. venv at `D:\drift\venv`.
 - GPU: RTX 5050 Laptop, 8 GB, compute capability 12.0 (Blackwell). Needs **torch cu128 build**: now `torch 2.11.0+cu128`, verified `cuda.is_available()`; LSTM train step (batch 64, len 256) ~3 ms.
+- Correct accelerometer columns (0-indexed): hand 4-6, chest 21-23, ankle 38-40. Temperature: 3, 20, 37.
+- 12-class label set (activity ids 1,2,3,4,5,6,7,12,13,16,17,24). 12-class LSTM = 53,260 params = 213,040 B FP32 (18-class head = 53,650).
+- Data after Phase 1 pipeline: train/val/test windows (blocked) 8247/2404/3607 over 8 clients; class imbalance 5.7x (rope jumping smallest); clients lack classes (103 has 8, 104/106 have 10) = natural non-IID.
+- Each subject does each activity once (stairs twice), so every bout is one long segment; within-bout splitting is unavoidable.
+- Training speed (RTX 5050): one E1/E2/E3 run at the locked budget ~90-95 s.
 - PAMAP2: 9 `Protocol/` files; `Optional/` only has subjects 101, 105, 106, 108, 109.
 - `docs/RESEARCH_PLAN.md` mentions `test_phase*.py`; those files no longer exist. The real tests are in `tests/`.
 
@@ -59,3 +71,27 @@ Deliberately NOT done (and why):
 - Seeds/determinism utilities (set all RNGs, `torch.use_deterministic_algorithms`) -> Phase 1.
 
 Next: Phase 1 (data & baseline lock): purity filter, stratified/randomised-block split, frozen normalisation fit on pre-drift train only, real E1/E2/E3 on stationary data, params/bytes table.
+
+### 2026-10-26 - Phase 1 (Data & baseline lock) - branch `phase-1-data-baselines`
+Built: `src/data` (bout-based windowing, blocked/temporal splits with purge, train-only normalisation), `src/fl/engine.py` + `baselines.py` (GPU, E1/E2/E3), `src/eval` (metrics, bootstrap CI, Wilcoxon+Holm), `src/utils` (seed, config, result I/O with git hash), `configs/phase1_baselines.yaml`, experiments `phase1_{data_audit,baselines,channel_check,report}.py`. 59 tests pass (+2 xfail). Reports: `results/phase1/summary.md`, `data_audit.md`.
+
+Locked-budget results, 5 seeds (42,123,999,2024,7), test split, mean macro-F1:
+
+| method | blocked (S0 control) | temporal (natural-drift probe) |
+|---|---|---|
+| E1 local-only | 0.883 +- 0.003 | 0.815 +- 0.005 |
+| E2 centralised | 0.871 +- 0.008 | 0.810 +- 0.004 |
+| E3 FedAvg | 0.851 +- 0.015 | 0.774 +- 0.013 |
+
+What this means / caveats (do not over-claim):
+- The old "95% accuracy" is not reproducible under a leak-free protocol; realistic stationary macro-F1 is ~0.85-0.88. Old numbers must not appear in the paper.
+- **Local-only (personalised) >= pooled/global models** on within-subject test data; FedAvg is worst and has a weak worst-client (0.68; client 103, which only has 8 classes, is the problem). So FedAvg is a *beatable* baseline, but the proposed system must be compared against personalised baselines (add FedAvg + local fine-tuning in Phase 6, already in plan as E3b/FedAvg+FT).
+- With 5 seeds the minimum Wilcoxon p is 0.0625: no pairwise test can reach p<0.05. Plan: report CIs and effect sizes; consider 10 seeds for the headline comparisons in Phase 6.
+- FedAvg temporal runs still select rounds 43-58 of 60 (not fully converged). Revisit if FedAvg becomes the main comparison.
+- Val macro-F1 (0.87-0.93 blocked, 0.94-0.98 temporal) overstates test; never report val.
+- Weights initialised/seeded deterministically (same seed => identical results, tested). GPU determinism relies on cuDNN deterministic flags.
+- Results were produced at commit `4393dbd` + uncommitted config/runner edits (committed right after); numbers are in `results/phase1/*.json` with the full config.
+
+Phase 1 exit gate: met (verified config + data audit table; E1-E3 reproduce across 5 seeds with std <= 0.015).
+
+Next: Phase 2 (drift generator): real + virtual drift injectors, S0-S3 schedules as YAML, ground-truth change-point manifest, built on the `src/data` pipeline (so the old `data_pipeline` can be retired), stream visualisations and manifest tests. Also fix A11.

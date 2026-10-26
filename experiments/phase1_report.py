@@ -95,6 +95,21 @@ def main():
         for m in by_b:
             a = np.mean([r["test"]["mean_macro_f1"] for r in by_b[m]]); b = np.mean([r["test"]["mean_macro_f1"] for r in by_t[m]])
             out.append(f"| {NAMES[m]} | {a:.4f} | {b:.4f} | {a - b:+.4f} |")
+    bp = ROOT / "results/phase1/baselines_blocked_budget1x.json"
+    if bp.exists():
+        r1 = json.loads(bp.read_text())
+        b1, bf = r1["config"]["budget"], res_b["config"]["budget"]
+        out += ["", "## Budget sensitivity (blocked split, test macro-F1, mean ± std over seeds)", "",
+                f"Initial budget: {b1['total_epochs']} epochs / {b1['fedavg_rounds']} rounds. "
+                f"Locked budget: {bf['total_epochs']} epochs / {bf['fedavg_rounds']} rounds (x{bf['fedavg_rounds'] // b1['fedavg_rounds']}).", "",
+                "| method | initial budget | locked budget |", "|---|---|---|"]
+        g1 = defaultdict(list)
+        for r in r1["runs"]:
+            g1[r["method"]].append(r["test"]["mean_macro_f1"])
+        for m in by_b:
+            out.append(f"| {NAMES[m]} | {ms(g1[m])} | {ms([r['test']['mean_macro_f1'] for r in by_b[m]])} |")
+        out.append("\nFedAvg was still improving at the initial budget (best round 24-29 of 30); at the locked budget it converges "
+                   "well before the last round.")
     L = out
     cc = ROOT / "results/phase1/channel_check.json"
     if cc.exists():

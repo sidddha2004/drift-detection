@@ -1,0 +1,146 @@
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                    PAMAP2 PHYSICAL ACTIVITY MONITORING DATASET                 ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║                                                                               ║
+║  📊 DATASET OVERVIEW                                                          ║
+║  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  ║
+║                                                                               ║
+║  ┌─────────────────────────────────────────────────────────────────────────┐ ║
+║  │  SUBJECTS:  9 participants (subject101 - subject109)                    │ ║
+║  │  ACTIVITIES: 18 activities (walking, running, sitting, lying, etc.)     │ ║
+║  │  SENSORS:   3 IMU units (wrist, chest, ankle)                           │ ║
+║  │  AXES:      9 axes total (3 axes × 3 sensors)                           │ ║
+║  │  FREQUENCY: 100 Hz sampling rate                                        │ ║
+║  │  DURATION:  ~10 hours per subject                                       │ ║
+║  └─────────────────────────────────────────────────────────────────────────┘ ║
+║                                                                               ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║                                                                               ║
+║  📱 SENSOR PLACEMENT                                                          ║
+║  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  ║
+║                                                                               ║
+║                          ┌─────────────────┐                                  ║
+║                          │   CHEST IMU     │                                  ║
+║                          │  (heart monitor)│                                  ║
+║                          └─────────────────┘                                  ║
+║                                   │                                           ║
+║                       ┌───────────┴───────────┐                               ║
+║                       │                       │                               ║
+║                  ┌────▼────┐             ┌────▼────┐                          ║
+║                  │ WRIST   │             │ ANKLE   │                          ║
+║                  │ IMU     │             │ IMU     │                          ║
+║                  └─────────┘             └─────────┘                          ║
+║                                                                               ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║                                                                               ║
+║  📈 DATA STRUCTURE                                                            ║
+║  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  ║
+║                                                                               ║
+║  Raw Data File Format (.dat):                                                 ║
+║  ┌──────────────────────────────────────────────────────────────────────┐   ║
+║  │  timestamp | activityID | heart_rate | IMU_hand(15 cols) |           │   ║
+║  │            |            |            | IMU_chest(15 cols) |           │   ║
+║  │            |            |            | IMU_ankle(15 cols) |           │   ║
+║  └──────────────────────────────────────────────────────────────────────┘   ║
+║                                                                               ║
+║  → After preprocessing: 9 columns (accelerometer x,y,z × 3 sensors)          ║
+║                                                                               ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║                                                                               ║
+║  🏃 18 ACTIVITY CLASSES                                                       ║
+║  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  ║
+║                                                                               ║
+║  ┌─────────────────────────────────────────────────────────────────────┐    ║
+║  │  LIFESTYLE (Common)                  │  SPORT (Exercise)            │    ║
+║  ├─────────────────────────────────────┼──────────────────────────────┤    ║
+║  │  1. Lying                            │  9. Rope jumping             │    ║
+║  │  2. Sitting                          │  10. Running                 │    ║
+║  │  3. Standing                         │  11. Basketball              │    ║
+║  │  4. Walking                          │  12. Volleyball              │    ║
+║  │  5. Nordic walking                   │  13. Soccer/football         │    ║
+║  │  6. Upstairs                         │  14. Cycling                 │    ║
+║  │  7. Downstairs                       │  15. Table tennis            │    ║
+║  │  8. Ironing                          │                               │    ║
+║  │                                      │  17-18. Other activities     │    ║
+║  └─────────────────────────────────────┴──────────────────────────────┘    ║
+║                                                                               ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║                                                                               ║
+║  📊 DATA DISTRIBUTION PER SUBJECT                                              ║
+║  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  ║
+║                                                                               ║
+║  Subject   │ Samples    │ Activities │ Duration                              ║
+║  ─────────┼────────────┼────────────┼──────────────                         ║
+║  101      │ ~1,000,000 │ 18         │ ~10 hours                            ║
+║  102      │ ~500,000   │ 17         │ ~5 hours                             ║
+║  103      │ ~800,000   │ 18         │ ~8 hours                             ║
+║  104      │ ~600,000   │ 16         │ ~6 hours                             ║
+║  105      │ ~700,000   │ 18         │ ~7 hours                             ║
+║  106      │ ~900,000   │ 18         │ ~9 hours                             ║
+║  107      │ ~400,000   │ 15         │ ~4 hours                             ║
+║  108      │ ~500,000   │ 17         │ ~5 hours                             ║
+║  109      │ ~650,000   │ 18         │ ~6.5 hours                           ║
+║                                                                               ║
+║  Total:     ~6,050,000 samples                                               ║
+║                                                                               ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║                                                                               ║
+║  🔧 PREPROCESSING STEPS                                                       ║
+║  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  ║
+║                                                                               ║
+║  Raw Data (54 columns)                                                        ║
+║       │                                                                       ║
+║       ▼                                                                       ║
+║  ┌─────────────────┐                                                          ║
+║  │ Filter transient│  Remove activity ID = 0 (transient activities)         ║
+║  │ activities      │                                                          ║
+║  └────────┬────────┘                                                          ║
+║           │                                                                   ║
+║           ▼                                                                   ║
+║  ┌─────────────────┐                                                          ║
+║  │ Interpolate NaN │  Handle wireless dropout (linear interpolation)         ║
+║  └────────┬────────┘                                                          ║
+║           │                                                                   ║
+║           ▼                                                                   ║
+║  ┌─────────────────┐                                                          ║
+║  │ Z-score         │  Normalize: (x - μ) / σ per subject per axis            ║
+║  │ Normalization   │                                                          ║
+║  └────────┬────────┘                                                          ║
+║           │                                                                   ║
+║           ▼                                                                   ║
+║  Clean Data (9 axes: accelerometer x,y,z × 3 sensors)                         ║
+║       │                                                                       ║
+║       ▼                                                                       ║
+║  ┌─────────────────┐     ┌─────────────────┐                                 ║
+║  │ Sliding Windows │     │ Window: 256     │                                 ║
+║  │ (50% overlap)   │     │ Stride: 128     │                                 ║
+║  └────────┬────────┘     │ @ 100Hz = 2.56s │                                 ║
+║           │              └─────────────────┘                                 ║
+║           ▼                                                                   ║
+║  LSTM Input: (n_windows, 256, 9)                                              ║
+║                                                                               ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║                                                                               ║
+║  🎯 KEY CHARACTERISTICS                                                        ║
+║  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  ║
+║                                                                               ║
+║  ✓ Real-world indoor/outdoor activities                                       ║
+║  ✓ Multiple sensor modalities (accelerometer, gyroscope, magnetometer)       ║
+║  ✓ Inter-subject variability (different body types, fitness levels)          ║
+║  ✓ Class imbalance (some activities have fewer samples)                       ║
+║  ✓ Natural concept drift (fatigue, technique changes over time)              ║
+║  ✓ Missing data patterns (wireless sensor dropout)                            ║
+║                                                                               ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║                                                                               ║
+║  📚 REFERENCE                                                                 ║
+║  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  ║
+║                                                                               ║
+║  A. Reiss and D. Stricker, "Introducing a new benchmarked dataset for       ║
+║  activity monitoring," in Proc. 16th IEEE Int. Symp. Wearable Computers      ║
+║  (ISWC), 2012, pp. 108–109.                                                  ║
+║                                                                               ║
+║  Download: https://archive.ics.uci.edu/ml/datasets/pamap2+physical+activity+  ║
+║           monitoring                                                          ║
+║                                                                               ║
+╚═══════════════════════════════════════════════════════════════════════════════╝

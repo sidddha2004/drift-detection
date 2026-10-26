@@ -1,0 +1,273 @@
+{
+  "detection_counts": {
+    "SUDDEN": {
+      "detected": 9,
+      "total": 9
+    },
+    "GRADUAL": {
+      "detected": 9,
+      "total": 9
+    },
+    "RECURRING": {
+      "detected": 9,
+      "total": 9
+    },
+    "FEATURE_LEVEL": {
+      "detected": 9,
+      "total": 9
+    }
+  },
+  "confusion_matrix": {
+    "SUDDEN": {
+      "SUDDEN": 0,
+      "GRADUAL": 9,
+      "RECURRING": 0,
+      "FEATURE_LEVEL": 0
+    },
+    "GRADUAL": {
+      "SUDDEN": 0,
+      "GRADUAL": 9,
+      "RECURRING": 0,
+      "FEATURE_LEVEL": 0
+    },
+    "RECURRING": {
+      "SUDDEN": 0,
+      "GRADUAL": 0,
+      "RECURRING": 9,
+      "FEATURE_LEVEL": 0
+    },
+    "FEATURE_LEVEL": {
+      "SUDDEN": 0,
+      "GRADUAL": 0,
+      "RECURRING": 5,
+      "FEATURE_LEVEL": 4
+    }
+  },
+  "results": [
+    {
+      "subject_id": 101,
+      "drifts": {
+        "SUDDEN": {
+          "detected": true,
+          "classified": "GRADUAL",
+          "detection_point": 55
+        },
+        "GRADUAL": {
+          "detected": true,
+          "classified": "GRADUAL",
+          "detection_point": 74
+        },
+        "RECURRING": {
+          "detected": true,
+          "classified": "RECURRING",
+          "detection_point": 63
+        },
+        "FEATURE_LEVEL": {
+          "detected": true,
+          "classified": "RECURRING",
+          "detection_point": 55
+        }
+      }
+    },
+    {
+      "subject_id": 102,
+      "drifts": {
+        "SUDDEN": {
+          "detected": true,
+          "classified": "GRADUAL",
+          "detection_point": 55
+        },
+        "GRADUAL": {
+          "detected": true,
+          "classified": "GRADUAL",
+          "detection_point": 71
+        },
+        "RECURRING": {
+          "detected": true,
+          "classified": "RECURRING",
+          "detection_point": 73
+        },
+        "FEATURE_LEVEL": {
+          "detected": true,
+          "classified": "RECURRING",
+          "detection_point": 93
+        }
+      }
+    },
+    {
+      "subject_id": 103,
+      "drifts": {
+        "SUDDEN": {
+          "detected": true,
+          "classified": "GRADUAL",
+          "detection_point": 55
+        },
+        "GRADUAL": {
+          "detected": true,
+          "classified": "GRADUAL",
+          "detection_point": 80
+        },
+        "RECURRING": {
+          "detected": true,
+          "classified": "RECURRING",
+          "detection_point": 63
+        },
+        "FEATURE_LEVEL": {
+          "detected": true,
+          "classified": "FEATURE_LEVEL",
+          "detection_point": 98
+        }
+      }
+    },
+    {
+      "subject_id": 104,
+      "drifts": {
+        "SUDDEN": {
+          "detected": true,
+          "classified": "GRADUAL",
+          "detection_point": 55
+        },
+        "GRADUAL": {
+          "detected": true,
+          "classified": "GRADUAL",
+          "detection_point": 74
+        },
+        "RECURRING": {
+          "detected": true,
+          "classified": "RECURRING",
+          "detection_point": 64
+        },
+        "FEATURE_LEVEL": {
+          "detected": true,
+          "classified": "FEATURE_LEVEL",
+          "detection_point": 65
+        }
+      }
+    },
+    {
+      "subject_id": 105,
+      "drifts": {
+        "SUDDEN": {
+          "detected": true,
+          "classified": "GRADUAL",
+          "detection_point": 55
+        },
+        "GRADUAL": {
+          "detected": true,
+          "classified": "GRADUAL",
+          "detection_point": 74
+        },
+        "RECURRING": {
+          "detected": true,
+          "classified": "RECURRING",
+          "detection_point": 63
+        },
+        "FEATURE_LEVEL": {
+          "detected": true,
+          "classified": "FEATURE_LEVEL",
+          "detection_point": 63
+        }
+      }
+    },
+    {
+      "subject_id": 106,
+      "drifts": {
+        "SUDDEN": {
+          "detected": true,
+          "classified": "GRADUAL",
+          "detection_point": 55
+        },
+        "GRADUAL": {
+          "detected": true,
+          "classified": "GRADUAL",
+          "detection_point": 75
+        },
+        "RECURRING": {
+          "detected": true,
+          "classified": "RECURRING",
+          "detection_point": 64
+        },
+        "FEATURE_LEVEL": {
+          "detected": true,
+          "classified": "RECURRING",
+          "detection_point": 102
+        }
+      }
+    },
+    {
+      "subject_id": 107,
+      "drifts": {
+        "SUDDEN": {
+          "detected": true,
+          "classified": "GRADUAL",
+          "detection_point": 55
+        },
+        "GRADUAL": {
+          "detected": true,
+          "classified": "GRADUAL",
+          "detection_point": 74
+        },
+        "RECURRING": {
+          "detected": true,
+          "classified": "RECURRING",
+          "detection_point": 64
+        },
+        "FEATURE_LEVEL": {
+          "detected": true,
+          "classified": "FEATURE_LEVEL",
+          "detection_point": 66
+        }
+      }
+    },
+    {
+      "subject_id": 108,
+      "drifts": {
+        "SUDDEN": {
+          "detected": true,
+          "classified": "GRADUAL",
+          "detection_point": 55
+        },
+        "GRADUAL": {
+          "detected": true,
+          "classified": "GRADUAL",
+          "detection_point": 79
+        },
+        "RECURRING": {
+          "detected": true,
+          "classified": "RECURRING",
+          "detection_point": 63
+        },
+        "FEATURE_LEVEL": {
+          "detected": true,
+          "classified": "RECURRING",
+          "detection_point": 70
+        }
+      }
+    },
+    {
+      "subject_id": 109,
+      "drifts": {
+        "SUDDEN": {
+          "detected": true,
+          "classified": "GRADUAL",
+          "detection_point": 55
+        },
+        "GRADUAL": {
+          "detected": true,
+          "classified": "GRADUAL",
+          "detection_point": 80
+        },
+        "RECURRING": {
+          "detected": true,
+          "classified": "RECURRING",
+          "detection_point": 64
+        },
+        "FEATURE_LEVEL": {
+          "detected": true,
+          "classified": "RECURRING",
+          "detection_point": 66
+        }
+      }
+    }
+  ]
+}

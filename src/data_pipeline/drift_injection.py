@@ -80,7 +80,7 @@ class DriftInjector:
         x'(t) = x(t) + δ for t >= injection_point
 
         Args:
-            data: Shape (n_samples, 9)
+            data: Shape (n_samples, 9) or (n_samples, 256, 9) for LSTM windows
             injection_point: Sample index to start drift
 
         Returns:
@@ -96,7 +96,13 @@ class DriftInjector:
         drift_offset = self.config.magnitude
         self.drift_applied = np.full(9, drift_offset)
 
-        data[injection_point:] += drift_offset
+        # Handle both 2D (n_samples, 9) and 3D (n_samples, 256, 9) data
+        if len(data.shape) == 3:
+            # LSTM windows: (n_samples, 256, 9)
+            data[injection_point:] += self.drift_applied[np.newaxis, np.newaxis, :]
+        else:
+            # 2D features: (n_samples, 9)
+            data[injection_point:] += self.drift_applied[np.newaxis, :]
 
         return data
 
@@ -112,7 +118,7 @@ class DriftInjector:
         where α(t) = min(1, (t - injection_point) / ramp_samples)
 
         Args:
-            data: Shape (n_samples, 9)
+            data: Shape (n_samples, 9) or (n_samples, 256, 9) for LSTM windows
             injection_point: Sample index to start drift
 
         Returns:
@@ -132,13 +138,27 @@ class DriftInjector:
         drift_offset = self.config.magnitude
         self.drift_applied = np.full(9, drift_offset)
 
-        data[injection_point:injection_point + ramp_length] += (
-            alpha[:, np.newaxis] * drift_offset
-        )
+        # Handle both 2D (n_samples, 9) and 3D (n_samples, 256, 9) data
+        if len(data.shape) == 3:
+            # LSTM windows: (n_samples, 256, 9)
+            # Reshape alpha for proper broadcasting
+            alpha_3d = alpha[:, np.newaxis, np.newaxis]  # (ramp_length, 1, 1)
+            data[injection_point:injection_point + ramp_length] += (
+                alpha_3d * self.drift_applied[np.newaxis, np.newaxis, :]
+            )
 
-        # Full drift after ramp
-        if injection_point + ramp_length < n_samples:
-            data[injection_point + ramp_length:] += drift_offset
+            # Full drift after ramp
+            if injection_point + ramp_length < n_samples:
+                data[injection_point + ramp_length:] += self.drift_applied[np.newaxis, np.newaxis, :]
+        else:
+            # 2D features: (n_samples, 9)
+            data[injection_point:injection_point + ramp_length] += (
+                alpha[:, np.newaxis] * self.drift_applied[np.newaxis, :]
+            )
+
+            # Full drift after ramp
+            if injection_point + ramp_length < n_samples:
+                data[injection_point + ramp_length:] += self.drift_applied[np.newaxis, :]
 
         return data
 
@@ -154,7 +174,7 @@ class DriftInjector:
         x'(t) = x(t) otherwise
 
         Args:
-            data: Shape (n_samples, 9)
+            data: Shape (n_samples, 9) or (n_samples, 256, 9) for LSTM windows
             injection_point: Sample index to start pattern
 
         Returns:
@@ -177,7 +197,13 @@ class DriftInjector:
         drift_offset = self.config.magnitude
         self.drift_applied = np.full(9, drift_offset)
 
-        data[injection_point:][in_drift_phase] += drift_offset
+        # Handle both 2D (n_samples, 9) and 3D (n_samples, 256, 9) data
+        if len(data.shape) == 3:
+            # LSTM windows: (n_samples, 256, 9)
+            data[injection_point:][in_drift_phase] += self.drift_applied[np.newaxis, np.newaxis, :]
+        else:
+            # 2D features: (n_samples, 9)
+            data[injection_point:][in_drift_phase] += self.drift_applied[np.newaxis, :]
 
         return data
 
@@ -193,7 +219,7 @@ class DriftInjector:
         x'(t) = x(t) for other axes
 
         Args:
-            data: Shape (n_samples, 9)
+            data: Shape (n_samples, 9) or (n_samples, 256, 9) for LSTM windows
             injection_point: Sample index to start drift
 
         Returns:
@@ -212,7 +238,13 @@ class DriftInjector:
         self.drift_applied = np.zeros(9)
         self.drift_applied[self.config.target_axis] = drift_offset
 
-        data[injection_point:, self.config.target_axis] += drift_offset
+        # Handle both 2D (n_samples, 9) and 3D (n_samples, 256, 9) data
+        if len(data.shape) == 3:
+            # LSTM windows: (n_samples, 256, 9)
+            data[injection_point:, :, self.config.target_axis] += drift_offset
+        else:
+            # 2D features: (n_samples, 9)
+            data[injection_point:, self.config.target_axis] += drift_offset
 
         return data
 

@@ -73,7 +73,7 @@ Deliberately NOT done (and why):
 Next: Phase 1 (data & baseline lock): purity filter, stratified/randomised-block split, frozen normalisation fit on pre-drift train only, real E1/E2/E3 on stationary data, params/bytes table.
 
 ### 2026-10-26 - Phase 1 (Data & baseline lock) - branch `phase-1-data-baselines`
-Built: `src/data` (bout-based windowing, blocked/temporal splits with purge, train-only normalisation), `src/fl/engine.py` + `baselines.py` (GPU, E1/E2/E3), `src/eval` (metrics, bootstrap CI, Wilcoxon+Holm), `src/utils` (seed, config, result I/O with git hash), `configs/phase1_baselines.yaml`, experiments `phase1_{data_audit,baselines,channel_check,report}.py`. 59 tests pass (+2 xfail). Reports: `results/phase1/summary.md`, `data_audit.md`.
+Built: `src/data` (bout-based windowing, blocked/temporal splits with purge, train-only normalisation), `src/fl/engine.py` + `baselines.py` (GPU, E1/E2/E3), `src/eval` (metrics, bootstrap CI, Wilcoxon+Holm), `src/utils` (seed, config, result I/O with git hash), `configs/phase1_baselines.yaml`, experiments `phase1_{data_audit,baselines,channel_check,report}.py`. 46 tests pass (+2 xfail). Reports: `results/phase1/summary.md`, `data_audit.md`.
 
 Locked-budget results, 5 seeds (42,123,999,2024,7), test split, mean macro-F1:
 

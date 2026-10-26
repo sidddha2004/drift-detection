@@ -2,12 +2,6 @@
 from .fl_client import FLClient, FLClientConfig
 from .fl_server import FLServer, FLServerConfig, FLSimulator, FederatedIntegratedSimulator
 from .aggregator import FedAvgAggregator, AggregationConfig, QuantizationHelper
-from .drift_aware_fl import (
-    DriftAwareFlSimulation,
-    DynamicDriftConfig,
-    DriftEvent,
-    run_dynamic_drift_fl
-)
 
 __all__ = [
     'FLClient',
@@ -19,9 +13,4 @@ __all__ = [
     'FedAvgAggregator',
     'AggregationConfig',
     'QuantizationHelper',
-    # Dynamic drift-aware FL
-    'DriftAwareFlSimulation',
-    'DynamicDriftConfig',
-    'DriftEvent',
-    'run_dynamic_drift_fl'
 ]

@@ -64,3 +64,11 @@ Reported alongside, never instead: mean over **all** clients, **worst-client** m
 - **Validation evidence (no training, `results/phase1/trim_validation.md`):** no client x class pair lost; 93-95% of windows kept; retained-window covariates unchanged (MMD^2 0.038 v1 vs v2, below the 0.071 sampling reference of the blocked train/test control).
 - **Reporting:** v2 is the primary protocol for all Phase 2+ experiments. The frozen v1 results (tag `phase1-frozen`) are reported as a sensitivity analysis. All methods use the same protocol. If the v1 vs v2 method ranking changes, this is reported.
 
+
+### Amendment A2 - 2026-10-27 (Phase 2 drift benchmark definition, before any detector or adaptation experiment)
+- **Stream:** 60 rounds; drift starts at round 20 (S1 sudden, S3 recurring: fixed or +-5 random per client; S2 gradual: asynchronous onsets 20-30, 10-round ramp). S3 recurring: on 10 rounds out of every 20.
+- **Pools:** train = clean pre-drift data; val = arrival stream (windows arrive in randomised-block order, drift applied per round; this is what detectors monitor and adaptation may use); test = held-out evaluation pool, transformed at each round's strength. The primary endpoint (Section 2) is therefore measured on unseen post-drift test windows.
+- **Coverage:** partial = 3 of 8 clients (chosen by seeded draw), full = 8 of 8.
+- **Scenario S4 added** (feature-level drift: one sensor only) so that all four types of the type classifier have ground truth. S0-S3 as planned.
+- **Severity (3 levels per transform)** is ordinal within a transform and not comparable across transforms. Levels were calibrated once on **tuning seed 1001** (`results/phase2/severity_check.md`), changing only the rotation levels (initially 15/30/60 deg collapsed the model, now 10/20/30). Evaluation seeds were not used for calibration.
+- Confirmatory comparisons use the `med` severity of each variant; low and high are reported as a sweep.

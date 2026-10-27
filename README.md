@@ -24,7 +24,8 @@ Research restructure in progress. See `docs/RESEARCH_PLAN.md` (plan) and `docs/d
 ```
 ├── config/              # YAML configuration files
 ├── src/
-│   ├── data_pipeline/   # preprocessing, windowing, drift injection
+│   ├── data/            # PAMAP2 bout loader, leak-free federation splits
+│   ├── drift/           # drift schedules, real + virtual injectors, per-client streams
 │   ├── drift_detection/ # LSTM model, ADWIN, drift-type classifier
 │   ├── adaptation/      # type-specific adaptation
 │   └── federated/       # FL client / server / aggregation

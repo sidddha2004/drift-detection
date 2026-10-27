@@ -1,0 +1,4 @@
+# S0: no drift (control). Measures false alarms and idle overhead.
+scenario: S0
+n_rounds: 60
+start: 20

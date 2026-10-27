@@ -31,14 +31,14 @@ Newest entries at the bottom of each section. Plan of record: `docs/RESEARCH_PLA
 | A1 | `drift_aware_fl.py` used mock training. **Retired to `legacy/` (Phase 0).** Real engine still to be written. | Phase 4 |
 | A2 | No clustering code (extension, D2) | Phase 5 |
 | A3 | No Page-Hinkley, entropy or MMD detector; only ADWIN on supervised error (ADWIN lives in `lstm_model.py`) | Phase 3 |
-| A4 | Injector is label-preserving virtual drift only (constant offset). No real drift. | Phase 2 |
+| A4 | Injector is label-preserving virtual drift only (constant offset). No real drift. | done (Phase 2) |
 | A5 | Per-subject temporal train/test split on sequential protocol activities -> classes missing from train | Phase 1 |
 | A6 | Running-EMA normalisation over the whole stream (leakage, masks offset drift) | Phase 1 |
 | A7 | Majority-label windows with no purity filter (xfail test in `tests/test_windowing.py`) | Phase 1 |
-| A8 | Drift re-sampled per round, no persistent stream / change-point manifest | Phase 2 |
+| A8 | Drift re-sampled per round, no persistent stream / change-point manifest | done (Phase 2) |
 | A9 | Detector/classifier/adapter not wired into any FL loop | Phase 4 |
 | A10 | `LSTMDriftDetector` has no device handling (CPU only); GPU use needs the new engine | Phase 4 |
-| A11 | `DriftInjector.get_drift_mask` uses `injection_point or default`, so an explicit 0 is ignored (xfail test) | Phase 2 |
+| A11 | `DriftInjector.get_drift_mask` uses `injection_point or default`, so an explicit 0 is ignored (xfail test) | done (Phase 2; old injector retired) |
 | A12 | Drift classifier scored 69% overall and 0% on SUDDEN, only on synthetic error streams | Phase 3 (WP1b) |
 | A14 | **Wrong channel indices**: old code used columns 3/20/37 = IMU *temperature* (+ two acc axes per IMU, no z). **Fixed in new `src/data` loader** (old `src/data_pipeline` still has it; retire in Phase 2/4). Evidence: with the interleaved split, temperature-only gets macro-F1 0.836 and the old channel set (0.913) beats the correct accelerometers (0.874), i.e. temperature leaks the label via sensor warm-up. | done (new loader) |
 | A15 | Temporal-vs-blocked test macro-F1 drops 6-8 pts for every method with no injection. **Phase 1b diagnosis: mostly NOT drift.** The first and last quarter of every activity bout are intrinsically hard (blocked-model error 0.17 / 0.14 vs 0.04-0.06 mid-bout: onset/offset/label-timing effects), and the temporal test set is exactly that last quarter. Genuine covariate shift is small (error 0.137 -> 0.175 at the same positions; train-vs-test MMD^2 2x higher). Class frequency (TV 0.009) and sensor warm-up (Spearman -0.06, p=0.52) are NOT causes. | handled: secondary sanity check only |
@@ -137,3 +137,15 @@ Step log (in order):
 9. Final: **v2 is the primary protocol from Phase 2 on; v1 = sensitivity table in the paper.** No cause analysis was needed because nothing changed.
 10. Housekeeping: the wrapper scripts reported exit 127 for the temporal steps, but the result JSONs are complete (15 / 10 runs, 5 seeds, correct commit and config) so the runs are valid; first launch with `nohup &` was killed when its shell ended, re-run via tracked background jobs (`run_rest*.sh`). 
 Next: Phase 2 (drift generator) on v2 streams.
+
+### 2026-10-27 - Phase 2: drift generator - branch `phase-2-drift-generator`
+Step log (in order):
+1. Design (written before coding): time in rounds; events = profile (sudden/gradual/recurring) x mode (virtual/real) x transform (offset g / gain / rotation deg / label_remap) x channel subset x coverage x timing; type4 label derived by rule (virtual transform on a channel subset => feature_level, else the profile). Virtual transforms act in RAW g (de-normalise with frozen train stats, transform, re-normalise); real drift only relabels (disjoint class swaps), gradual real drift remaps a growing fraction.
+2. Code: `src/drift/{schedule,transforms,stream}.py`; scenario YAMLs in `configs/scenarios/` (`severity.yaml`, S0 none, S1 sudden: 6 variants, S2 gradual: 4, S3 recurring: 3, S4 feature-level: 3). Manifest = pure function of (scenario, variant, severity, seed, clients, client classes); it stores per-client events and ground-truth change points (onset / offset / full).
+3. Pools (A2 in analysis plan): train clean; val = arrival stream (detector/adaptation input); test = per-round evaluation pool. Phase 4 must decide whether adaptation needs its own validation split carved out of the arrival stream (val is only ~15% of windows, about 4 windows/round).
+4. Tests: `tests/test_drift_generator.py`, 24 tests on synthetic clients (alpha profiles, change points, exact offset in raw g, rotation preserves |a| and other sensors, feature-level touches only target channels, real drift never touches inputs, gradual remap fraction grows, coverage 3/8, timing modes, determinism, 4 type4 labels all present, A11 explicit start 0). All pass.
+5. Visual check: `experiments/phase2_drift_catalog.py` -> `results/phase2/stream_<scenario>.png` + `manifest_catalog.{md,json}` (seed 42, med). Schedules look as specified (partial = clients 101, 103, 107 for seed 42). The raw arrival-stream trace is noisy because each round has about 4 windows of mixed activities; the schedule heatmaps are the reliable view.
+6. Severity calibration on **tuning seed 1001** (`experiments/phase2_severity_check.py`, `results/phase2/severity_check.md`): frozen local model per client, clean macro-F1 0.940. All 7 transform/scope cases are monotone low > med > high. First run (seed 42, rotation 15/30/60 deg) showed 60 deg collapses the model (0.12), so rotation levels were changed to 10/20/30 and the check re-run on the tuning seed (design calibration must not use evaluation seeds; recorded in Amendment A2). Mean macro-F1 at low/med/high, all sensors: offset 0.913/0.797/0.462, gain 0.911/0.813/0.656, rotation 0.880/0.678/0.421, real label swaps 0.761/0.584/0.420. Hand-only offset is nearly invisible at low/med (0.932/0.912): the subtle end for the detector tests.
+7. Retired the old pipeline: `src/data_pipeline`, its 3 test files and `run_random_client_drift_fl.py` moved to `legacy/` (A4, A7, A11, A14 now closed). Suite: 60 passed, 0 xfail.
+Caveats: severity is ordinal per transform (not comparable across transforms); virtual drift is applied at round granularity (constant alpha within a round); rotation is about the sensor x axis only; label_remap classes are chosen at random, not by activity similarity.
+Next: Phase 3 detectors (ADWIN / Page-Hinkley / entropy-MMD, two-level, drift-type classifier trained on real error streams from these scenarios) - after the user's go-ahead.

@@ -210,8 +210,15 @@ def test_stream_does_not_mutate_client_data_and_is_reproducible():
         np.testing.assert_array_equal(c.x[k], before[k])
 
 
-def test_arrival_stream_covers_every_val_window_once_per_pass():
-    c = _client(n=(40, 30, 30))
+def test_val_is_split_into_disjoint_cal_and_block_ordered_arrival():
+    c = _client(n=(40, 200, 30))
+    c.y["val"] = np.repeat(np.arange(8), 25)             # 8 activities, 25 windows each
     s = build_streams({101: c}, _manifest("s1_sudden.yaml", "virtual_offset_full"))[101]
-    seen = np.concatenate([s.order[(np.arange(s.per_round) + r * s.per_round) % 30] for r in range(60)])
-    assert set(seen.tolist()) == set(range(30))
+    assert not set(s.cal_idx.tolist()) & set(s.order.tolist())
+    assert set(s.cal_idx.tolist()) | set(s.order.tolist()) == set(range(200))
+    assert set(np.unique(c.y["val"][s.cal_idx])) == set(range(8))           # every class is calibrated
+    runs = np.diff(s.order)
+    assert (runs == 1).mean() > 0.8                        # windows inside a block stay in time order
+    pr = s.per_round
+    seen = np.concatenate([s.order[(np.arange(pr) + r * pr) % len(s.order)] for r in range(60)])
+    assert set(seen.tolist()) <= set(s.order.tolist()) and len(set(seen.tolist())) == len(seen)   # no window repeats

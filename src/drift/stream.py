@@ -2,9 +2,12 @@
 
 Pools (all come from the leak-free Phase 1 split, v2 protocol):
   train : clean pre-drift training data (never drifted: the model is fit before the stream starts)
-  val   : ARRIVAL stream. Windows arrive `per_round` at a time in randomised-block order; drift is applied
-          according to the schedule. This is what detectors monitor and what adaptation may use (subject to the
-          label-supervision model chosen in Phase 3/4).
+  val   : split by contiguous blocks of `block` windows (alternating per class) into
+          cal     clean, never drifted: pre-deployment calibration/reference data for detectors, and
+          arrival  the ARRIVAL stream: blocks come in random order, windows inside a block stay in time order, so the
+                  stream has realistic activity bouts. `per_round` windows arrive per round; drift is applied per the
+                  schedule. This is what detectors monitor and what adaptation may use (subject to the label-supervision
+                  model chosen in Phase 3/4).
   test  : held-out EVALUATION pool. At every round the whole pool is transformed with that round's drift strength,
           so post-change macro-F1 is measured on unseen windows with low variance.
 """
@@ -20,12 +23,33 @@ from .transforms import apply_events
 _POOL_ID = {"val": 1, "test": 2}
 
 
+def split_val_blocks(y_val: np.ndarray, block: int, rng: np.random.Generator):
+    """Contiguous runs of equal label are cut into blocks of <= `block` windows; blocks of each class alternate
+    between calibration and arrival (a class with a single block goes to arrival). Returns (cal_idx, arrival_blocks)."""
+    blocks, start = [], 0
+    for i in range(1, len(y_val) + 1):
+        if i == len(y_val) or y_val[i] != y_val[start]:
+            for b in range(start, i, block):
+                blocks.append((int(y_val[start]), np.arange(b, min(i, b + block))))
+            start = i
+    cal, arr, seen = [], [], {}
+    flip = {int(k): int(rng.integers(0, 2)) for k in np.unique(y_val)}
+    for k, idx in blocks:
+        seen[k] = seen.get(k, 0) + 1
+        n_k = sum(1 for kk, _ in blocks if kk == k)
+        (arr if n_k == 1 or (seen[k] + flip[k]) % 2 == 0 else cal).append(idx)
+    cal_idx = np.concatenate(cal) if cal else np.array([], dtype=int)
+    return cal_idx, arr
+
+
 class ClientStream:
-    def __init__(self, client: ClientData, events: List[DriftEvent], n_rounds: int, seed: int, per_round: int = 0):
+    def __init__(self, client: ClientData, events: List[DriftEvent], n_rounds: int, seed: int, per_round: int = 0,
+                 block: int = 16):
         self.c, self.events, self.n_rounds, self.seed = client, events, n_rounds, seed
-        n_val = client.n("val")
-        self.per_round = per_round or max(1, int(np.ceil(n_val / n_rounds)))
-        self.order = np.random.default_rng((seed, 31, client.client_id)).permutation(n_val)
+        rng = np.random.default_rng((seed, 31, client.client_id))
+        self.cal_idx, blocks = split_val_blocks(client.y["val"], block, rng)
+        self.order = np.concatenate([blocks[i] for i in rng.permutation(len(blocks))])
+        self.per_round = per_round or max(1, len(self.order) // n_rounds)      # floor: every arrival window is used at most once
         self._alpha = [e.alpha(n_rounds) for e in events]
 
     def alphas(self, r: int) -> List[float]:
@@ -40,6 +64,10 @@ class ClientStream:
 
     def train_pool(self) -> Tuple[np.ndarray, np.ndarray]:
         return self.c.x["train"], self.c.y["train"]
+
+    def cal_pool(self) -> Tuple[np.ndarray, np.ndarray]:
+        """Clean labelled calibration windows (never drifted)."""
+        return self.c.x["val"][self.cal_idx], self.c.y["val"][self.cal_idx]
 
     def arrival_batch(self, r: int) -> Tuple[np.ndarray, np.ndarray]:
         n = len(self.order)

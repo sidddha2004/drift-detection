@@ -76,9 +76,9 @@ def cal_signals(model, stream: ClientStream) -> Dict[str, np.ndarray]:
 
 
 def client_signals(model, client: ClientData, events: List[DriftEvent], n_rounds: int, seed: int,
-                   per_round: int = 0):
+                   per_round: int = 0, passes: int = 1):
     """Returns (arrival signals, calibration signals) of one client for one drift schedule."""
-    stream = ClientStream(client, events, n_rounds, seed, per_round)
+    stream = ClientStream(client, events, n_rounds, seed, per_round, passes=passes)
     xs, ys, alpha, rnd = [], [], [], []
     for r in range(n_rounds):
         x, y = stream.arrival_batch(r)

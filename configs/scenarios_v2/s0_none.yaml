@@ -1,0 +1,5 @@
+# [benchmark v2, Amendment A4] S0: no drift (control). Measures false alarms and idle overhead.
+scenario: S0
+n_rounds: 120
+passes: 2
+start: 30

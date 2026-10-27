@@ -173,3 +173,20 @@ def test_tracking_mode_runs_for_the_whole_episode(world):
     pol = Policy("t", "oracle", Response("al", "align", False, rounds=10, track=True, buffer_rounds=6), oracle_delay=2)
     res = _run(world, pol, _events(drifted=(1,)))
     assert res["adapt_rounds"] == 10 and res["up_bytes"].sum() == 0
+
+
+def test_adwin_online_detector_fires_on_an_error_increase_only_and_resets():
+    from src.fl.streaming import _ADWINOnline
+    d = _ADWINOnline(0.3)
+    rng = np.random.default_rng(0)
+    low = [d.update(float(rng.random() < 0.03)) for _ in range(80)]
+    high = [d.update(float(rng.random() < 0.5)) for _ in range(80)]
+    assert not any(low) and any(high)
+    d.reset()
+    assert not any(d.update(0.0) for _ in range(20))
+
+
+def test_policy_can_use_adwin_as_trigger(world):
+    pol = Policy("e4", "detector", Response("f", "full", True, rounds=1, epochs=1), detector=(0.3, 0.0), detector_kind="adwin")
+    res = _run(world, pol, _events(drifted=()))
+    assert res["f1"].shape == (3, ROUNDS)

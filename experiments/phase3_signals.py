@@ -13,6 +13,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
+from src.utils.bench import raw_dir, res_dir, scn_dir  # noqa: E402
 from src.data import DataConfig, build_federation  # noqa: E402
 from src.detect.signals import client_signals, train_local_models  # noqa: E402
 from src.drift import build_schedule, events_from_manifest, load_yaml  # noqa: E402
@@ -34,11 +35,11 @@ def main():
     clients, lm, _ = build_federation(DataConfig(**cfg["data"]))
     cids = sorted(clients)
     classes = {c: sorted(set(clients[c].y["train"].tolist())) for c in cids}
-    sev = load_yaml(ROOT / "configs/scenarios/severity.yaml")
+    sev = load_yaml(scn_dir(ROOT) / "severity.yaml")
     tc = TrainConfig(**cfg["train"])
-    out_dir = ROOT / "results/raw/phase3"
+    out_dir = raw_dir(ROOT, "phase3")
     out_dir.mkdir(parents=True, exist_ok=True)
-    s0 = load_yaml(ROOT / "configs/scenarios/s0_none.yaml")
+    s0 = load_yaml(scn_dir(ROOT) / "s0_none.yaml")
     n_rounds = s0["n_rounds"]
     for seed in args.seeds:
         path = out_dir / f"signals_seed{seed}.pkl"
@@ -50,11 +51,11 @@ def main():
         print(f"seed {seed}: models ready [{time.time() - t0:.0f}s]", flush=True)
         clean, cal = {}, {}
         for cid in cids:
-            clean[cid], cal[cid] = client_signals(models[cid], clients[cid], [], n_rounds, seed)
+            clean[cid], cal[cid] = client_signals(models[cid], clients[cid], [], n_rounds, seed, passes=s0.get("passes", 1))
         streams = {("S0", None, None, cid): clean[cid] for cid in cids}
         manifests = {}
         for name in SCENARIOS:
-            scn = load_yaml(ROOT / f"configs/scenarios/{name}.yaml")
+            scn = load_yaml(scn_dir(ROOT) / f"{name}.yaml")
             for v in scn["variants"]:
                 for lvl in args.severities:
                     m = build_schedule(scn, sev, v, lvl, seed, cids, classes)
@@ -62,7 +63,7 @@ def main():
                     ev = events_from_manifest(m)
                     for cid in cids:
                         if ev[cid]:
-                            streams[(scn["scenario"], v, lvl, cid)] = client_signals(models[cid], clients[cid], ev[cid], n_rounds, seed)[0]
+                            streams[(scn["scenario"], v, lvl, cid)] = client_signals(models[cid], clients[cid], ev[cid], n_rounds, seed, passes=m.get("passes", 1))[0]
                         else:
                             streams[(scn["scenario"], v, lvl, cid)] = clean[cid]
         with open(path, "wb") as f:

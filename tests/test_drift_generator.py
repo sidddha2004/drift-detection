@@ -222,3 +222,27 @@ def test_val_is_split_into_disjoint_cal_and_block_ordered_arrival():
     pr = s.per_round
     seen = np.concatenate([s.order[(np.arange(pr) + r * pr) % len(s.order)] for r in range(60)])
     assert set(seen.tolist()) <= set(s.order.tolist()) and len(set(seen.tolist())) == len(seen)   # no window repeats
+
+
+def test_two_pass_stream_replays_the_arrival_pool_in_new_block_orders():
+    c = _client(n=(40, 200, 30))
+    c.y["val"] = np.repeat(np.arange(8), 25)
+    m = _manifest("s1_sudden.yaml", "virtual_offset_full")
+    one = build_streams({101: c}, m)[101]
+    m2 = dict(m, passes=2)
+    two = build_streams({101: c}, m2)[101]
+    n1 = len(one.order)
+    assert len(two.order) == 2 * n1 and set(two.order[:n1].tolist()) == set(two.order[n1:].tolist()) == set(one.order.tolist())
+    assert not np.array_equal(two.order[:n1], two.order[n1:])                      # each pass has its own block order
+    assert two.per_round >= one.per_round and np.array_equal(one.cal_idx, two.cal_idx)   # calibration pool is unaffected
+
+
+def test_v2_scenarios_are_longer_and_keep_the_schedule_structure():
+    v2 = CFG.parent / "scenarios_v2"
+    sev = load_yaml(v2 / "severity.yaml")
+    m = build_schedule(load_yaml(v2 / "s3_recurring.yaml"), sev, "virtual_offset_partial", "med", 1, CLIENTS, CLASSES)
+    assert m["n_rounds"] == 120 and m["passes"] == 2
+    cps = [(c["round"], c["kind"]) for c in m["events"][0]["change_points"]]
+    assert cps == [(30, "onset"), (45, "offset"), (60, "onset"), (75, "offset"), (90, "onset"), (105, "offset")]
+    s1 = build_schedule(load_yaml(v2 / "s1_sudden.yaml"), sev, "virtual_offset_full", "med", 1, CLIENTS, CLASSES)
+    assert {e["start"] for e in s1["events"]} == {30}

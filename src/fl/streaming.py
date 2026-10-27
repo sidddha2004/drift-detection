@@ -106,7 +106,8 @@ class Policy:
     oracle_delay: int = 2           # oracle trigger: rounds after the true onset
     oracle_offsets: bool = False    # oracle trigger also fires `oracle_delay` rounds after a drift ENDS (recurring drift)
     period: int = 10                # periodic trigger: all clients every `period` rounds
-    detector: Tuple[float, float] = (0.05, 8.0)                      # PH (delta, lambda) on the error bit
+    detector: Tuple[float, float] = (0.05, 8.0)                      # PH (delta, lambda) on the error bit; ADWIN: (delta, unused)
+    detector_kind: str = "ph"                                        # "ph" | "adwin"
     cooldown_windows: int = 30
     typer: Optional[Callable] = None   # deployable typing: typer(cid, record) -> info dict, called `typing_delay` rounds after an alarm
     typing_delay: int = 5
@@ -141,7 +142,7 @@ class _Client:
     ref: list
     model: torch.nn.Module
     stream: ClientStream
-    ph: PageHinkley
+    ph: object                      # online detector (PH or ADWIN): update(err) -> bool, reset()
     buf_x: List = field(default_factory=list)
     buf_y: List = field(default_factory=list)
     buf_round: List = field(default_factory=list)
@@ -163,8 +164,40 @@ def _aggregate(models: List[torch.nn.Module], sizes: List[int], kind: str) -> Di
     return fedavg([m.adapter_state() for m in models], sizes)
 
 
+class _PHOnline:
+    def __init__(self, delta: float, lam: float):
+        self.ph = PageHinkley(delta, lam, warm=25)
+
+    def update(self, e: float) -> bool:
+        return self.ph.update(e)
+
+    def reset(self):
+        self.ph.reset()
+
+
+class _ADWINOnline:
+    """ADWIN on the error bit; only an INCREASE of the windowed error counts as an alarm."""
+
+    def __init__(self, delta: float):
+        self.delta = delta
+        self.reset()
+
+    def reset(self):
+        from river.drift import ADWIN
+        self.a = ADWIN(delta=self.delta)
+
+    def update(self, e: float) -> bool:
+        before = self.a.estimation
+        self.a.update(e)
+        return bool(self.a.drift_detected and self.a.estimation > before)
+
+
+def make_online_detector(policy) -> object:
+    return _ADWINOnline(policy.detector[0]) if policy.detector_kind == "adwin" else _PHOnline(*policy.detector)
+
+
 def run_stream(clients: Dict[int, ClientData], start_models: Dict[int, torch.nn.Module], events: Dict[int, List[DriftEvent]],
-               n_rounds: int, seed: int, n_classes: int, policy: Policy, tc: TrainConfig) -> Dict:
+               n_rounds: int, seed: int, n_classes: int, policy: Policy, tc: TrainConfig, passes: int = 1) -> Dict:
     """Run one policy on one drifting stream. `events` come from a Phase 2 manifest (ground truth for oracle triggers)."""
     seed_everything(seed)
     gen = torch.Generator().manual_seed(seed + 7)
@@ -173,7 +206,7 @@ def run_stream(clients: Dict[int, ClientData], start_models: Dict[int, torch.nn.
         m = copy.deepcopy(start_models[cid]).eval()
         m.lstm.flatten_parameters()
         tx, ty = to_tensors(cl.x["train"], cl.y["train"])
-        C[cid] = _Client(cid, tx, ty, reference_means(cl.x["train"], cl.y["train"], cl.mean, cl.std), m, ClientStream(cl, events[cid], n_rounds, seed), PageHinkley(*policy.detector, warm=25))
+        C[cid] = _Client(cid, tx, ty, reference_means(cl.x["train"], cl.y["train"], cl.mean, cl.std), m, ClientStream(cl, events[cid], n_rounds, seed, passes=passes), make_online_detector(policy))
     cids = sorted(C)
     f1 = np.zeros((len(cids), n_rounds))
     acc = np.zeros_like(f1)
@@ -206,10 +239,10 @@ def run_stream(clients: Dict[int, ClientData], start_models: Dict[int, torch.nn.
             fired = False
             for e in err:
                 st.window += 1
-                if st.ph.update(float(e)) and st.window - st.last_alarm_window >= policy.cooldown_windows:
-                    fired = True
-                    st.last_alarm_window = st.window
-                if st.ph.m - st.ph.mmin > st.ph.lam:      # reset after every crossing (also inside cooldown)
+                if st.ph.update(float(e)):                  # crossing: reset the detector, alarm only outside the cooldown
+                    if st.window - st.last_alarm_window >= policy.cooldown_windows:
+                        fired = True
+                        st.last_alarm_window = st.window
                     st.ph.reset()
             if policy.trigger == "detector" and fired and st.episode_left == 0 and st.pending is None:
                 if policy.typer is None:

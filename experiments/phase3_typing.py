@@ -25,6 +25,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from experiments.phase3_detectors import build  # noqa: E402
+from src.utils.bench import raw_dir, res_dir, scn_dir  # noqa: E402
 from src.detect.detectors import make_calibration, run_detector  # noqa: E402
 import src.detect.drift_type as DT  # noqa: E402
 from src.detect.drift_type import FEATURE_NAMES, TYPES, RuleClassifier, run_episodes, series  # noqa: E402
@@ -32,7 +33,7 @@ from src.detect.evaluate import HORIZON_ROUNDS  # noqa: E402
 from src.utils.io import run_metadata  # noqa: E402
 
 SEEDS = list(range(1001, 1011))
-CACHE = ROOT / "results/raw/phase3"
+CACHE = raw_dir(ROOT, "phase3")
 ORACLE_DELAY_ROUNDS = 2
 # `n_prior` (number of earlier alarms) is a schedule artefact with oracle alarms (every second alarm is a re-occurrence), so
 # the LEARNED models never see it; recurrence must come from the signature-memory features.
@@ -121,7 +122,7 @@ def main():
     ap.add_argument("--lookahead", type=int, default=5, help="rounds of evidence after the alarm")
     args = ap.parse_args()
     DT.LOOKAHEAD_ROUNDS = args.lookahead
-    rep_path = ROOT / "results/phase3/detector_report.json"
+    rep_path = res_dir(ROOT, "phase3") / "detector_report.json"
     sources = {"oracle": None}
     if rep_path.exists():
         sources["detected"] = json.loads(rep_path.read_text())["tuned"]
@@ -144,7 +145,7 @@ def main():
         L += ["    " + str(row) for row in r["models"]["gboost"]["cm"]]
         L += ["", f"recurring_first (not identifiable) predicted as: {r['recurring_first_predictions']}", "",
               "Feature importance (gboost, descriptive): " + ", ".join(f"{k} {v:.2f}" for k, v in list(r["feature_importance"].items())[:6]), ""]
-    out = ROOT / "results/phase3"
+    out = res_dir(ROOT, "phase3")
     (out / f"typing_report_la{args.lookahead}.md").write_text("\n".join(L), encoding="utf-8")
     (out / f"typing_report_la{args.lookahead}.json").write_text(json.dumps({"meta": run_metadata(), **report}, indent=1, default=float), encoding="utf-8")
     print("\n".join(L))

@@ -101,7 +101,8 @@ def build_schedule(scenario: dict, severity_table: dict, variant: Optional[str],
     `timing` (fixed | random | async) overrides the variant/scenario default."""
     n_rounds = int(scenario["n_rounds"])
     manifest = {"scenario": scenario["scenario"], "variant": variant, "severity": severity, "seed": int(seed), "timing": timing,
-                "n_rounds": n_rounds, "clients": list(map(int, clients)), "events": [], "drifted_clients": []}
+                "n_rounds": n_rounds, "passes": int(scenario.get("passes", 1)), "clients": list(map(int, clients)),
+                "events": [], "drifted_clients": []}
     if not scenario.get("variants"):
         return manifest
     if severity not in SEVERITIES:

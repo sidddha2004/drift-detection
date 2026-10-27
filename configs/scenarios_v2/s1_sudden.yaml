@@ -1,0 +1,15 @@
+# [benchmark v2, Amendment A4] S1: sudden drift. Step change at round `start` on all channels of the affected clients.
+# coverage: number of affected clients (of 8) or "all". Timing is overridden at run time (fixed | random).
+scenario: S1
+n_rounds: 120
+passes: 2
+start: 30
+timing: fixed
+jitter: 5
+variants:
+  virtual_offset_partial:   {profile: sudden, mode: virtual, transform: offset,      coverage: 3}
+  virtual_offset_full:      {profile: sudden, mode: virtual, transform: offset,      coverage: all}
+  virtual_gain_partial:     {profile: sudden, mode: virtual, transform: gain,        coverage: 3}
+  virtual_rotation_partial: {profile: sudden, mode: virtual, transform: rotation,    coverage: 3}
+  real_partial:             {profile: sudden, mode: real,    transform: label_remap, coverage: 3}
+  real_full:                {profile: sudden, mode: real,    transform: label_remap, coverage: all}

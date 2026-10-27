@@ -16,6 +16,7 @@ import torch
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
+from src.utils.bench import raw_dir, res_dir, scn_dir  # noqa: E402
 from src.data import DataConfig, build_federation  # noqa: E402
 from src.drift import ClientStream, build_schedule, events_from_manifest, load_yaml  # noqa: E402
 from src.eval.streaming import stream_metrics  # noqa: E402
@@ -97,6 +98,7 @@ POLICIES = {
     "typed_learned": Policy("typed_learned", "detector", respond_by_type=mode_typed_oracle),
     "typed_learned_conf80": Policy("typed_learned_conf80", "detector", respond_by_type=mode_typed_oracle),
     "ph_mode_oracle": Policy("ph_mode_oracle", "detector", respond_by_type=mode_typed_oracle),
+    "adwin_full_fed_E4": Policy("adwin_full_fed_E4", "detector", R_FULL_FED, detector_kind="adwin"),
     "ph_full_fed_E5": Policy("ph_full_fed_E5", "detector", R_FULL_FED),
     "ph_full_local": Policy("ph_full_local", "detector", R_FULL_LOCAL),
     "ph_adapter_local": Policy("ph_adapter_local", "detector", R_AD_LOCAL),
@@ -113,7 +115,7 @@ def train_mode_classifier():
     from sklearn.ensemble import GradientBoostingClassifier
     from sklearn.preprocessing import StandardScaler
     from experiments.phase3_typing import collect
-    tuned = json.loads((ROOT / "results/phase3/detector_report.json").read_text())["tuned"]
+    tuned = json.loads((res_dir(ROOT, "phase3") / "detector_report.json").read_text())["tuned"]
     import experiments.phase3_typing as T3
     old = T3.SEEDS
     T3.SEEDS = list(range(1004, 1011))
@@ -150,6 +152,18 @@ def make_typer(clf, sc, models, clients, seed, events=None, p_virtual=0.5):
     return typer
 
 
+def apply_tuned(pol):
+    """Detector settings come from the tuned detector report of the active benchmark (Phase 3), not from constants."""
+    path = res_dir(ROOT, "phase3") / "detector_report.json"
+    if pol.trigger != "detector" or not path.exists():
+        return pol
+    tuned = json.loads(path.read_text())["tuned"]
+    if pol.detector_kind == "adwin":
+        return dataclasses.replace(pol, detector=(tuned["D1_adwin_err"]["cfg"]["delta"], 0.0))
+    c = tuned["D2_ph_err"]["cfg"]
+    return dataclasses.replace(pol, detector=(c["delta"], c["lam"]))
+
+
 def pretrained(seed, clients, cal, n_classes, tc, epochs_rounds=(60, 2, 20)):
     path = CACHE / f"pretrained_seed{seed}.pt"
     if path.exists():
@@ -182,9 +196,9 @@ def main():
     clients, lm, _ = build_federation(DataConfig(**cfg["data"]))
     cids = sorted(clients)
     classes = {c: sorted(set(clients[c].y["train"].tolist())) for c in cids}
-    sev = load_yaml(ROOT / "configs/scenarios/severity.yaml")
+    sev = load_yaml(scn_dir(ROOT) / "severity.yaml")
     tc = TrainConfig(**cfg["train"])
-    out = ROOT / "results/phase4"
+    out = res_dir(ROOT, "phase4")
     out.mkdir(parents=True, exist_ok=True)
     runs = []
     clf = sc = None
@@ -197,11 +211,11 @@ def main():
         print(f"seed {seed}: pretrained [{time.time() - t0:.0f}s]", flush=True)
         for sv in args.variants:
             scn_key, variant = sv.split(":")
-            scn = load_yaml(ROOT / f"configs/scenarios/{SCN_FILE[scn_key]}.yaml")
+            scn = load_yaml(scn_dir(ROOT) / f"{SCN_FILE[scn_key]}.yaml")
             m = build_schedule(scn, sev, variant, args.severity, seed, cids, classes, args.timing)
             ev = events_from_manifest(m)
             for pname in args.policies:
-                pol = POLICIES[pname]
+                pol = apply_tuned(POLICIES[pname])
                 start = {c: (glob if pol.start_model == "global" else personal[c]) for c in cids}
                 if pname == "typed_learned":
                     pol = dataclasses.replace(pol, typer=make_typer(clf, sc, start, clients, seed))
@@ -209,7 +223,7 @@ def main():
                     pol = dataclasses.replace(pol, typer=make_typer(clf, sc, start, clients, seed, p_virtual=0.8))
                 elif pname == "ph_mode_oracle":
                     pol = dataclasses.replace(pol, typer=make_typer(None, None, start, clients, seed, events=ev))
-                res = run_stream(clients, start, ev, m["n_rounds"], seed, len(lm), pol, tc)
+                res = run_stream(clients, start, ev, m["n_rounds"], seed, len(lm), pol, tc, passes=m.get("passes", 1))
                 met = stream_metrics(res)
                 runs.append({"seed": seed, "scenario": scn_key, "variant": variant, "severity": args.severity, "policy": pname,
                              "metrics": met, "f1": res["f1"].tolist(), "alpha": res["alpha"].tolist(), "alarms": res["alarms"],

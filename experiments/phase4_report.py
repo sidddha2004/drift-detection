@@ -12,7 +12,9 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-OUT = ROOT / "results/phase4"
+from src.utils.bench import res_dir  # noqa: E402
+
+OUT = res_dir(ROOT, "phase4")
 FILES = ["s1_virtual_first_look", "s1_real_first_look", "typed_virtual", "typed_real", "mode_typed", "learned_s1", "learned_s234", "learned_conf80"]
 
 

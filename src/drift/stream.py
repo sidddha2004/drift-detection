@@ -44,11 +44,12 @@ def split_val_blocks(y_val: np.ndarray, block: int, rng: np.random.Generator):
 
 class ClientStream:
     def __init__(self, client: ClientData, events: List[DriftEvent], n_rounds: int, seed: int, per_round: int = 0,
-                 block: int = 16):
+                 block: int = 16, passes: int = 1):
         self.c, self.events, self.n_rounds, self.seed = client, events, n_rounds, seed
         rng = np.random.default_rng((seed, 31, client.client_id))
         self.cal_idx, blocks = split_val_blocks(client.y["val"], block, rng)
-        self.order = np.concatenate([blocks[i] for i in rng.permutation(len(blocks))])
+        # `passes` > 1 (benchmark v2): the arrival pool is replayed in a new random block order for every pass
+        self.order = np.concatenate([blocks[i] for _ in range(passes) for i in rng.permutation(len(blocks))])
         self.per_round = per_round or max(1, len(self.order) // n_rounds)      # floor: every arrival window is used at most once
         self._alpha = [e.alpha(n_rounds) for e in events]
 
@@ -80,4 +81,5 @@ class ClientStream:
 
 def build_streams(clients: Dict[int, ClientData], manifest: Dict, per_round: int = 0) -> Dict[int, ClientStream]:
     ev = events_from_manifest(manifest)
-    return {cid: ClientStream(c, ev[cid], manifest["n_rounds"], manifest["seed"], per_round) for cid, c in clients.items()}
+    return {cid: ClientStream(c, ev[cid], manifest["n_rounds"], manifest["seed"], per_round, passes=manifest.get("passes", 1))
+            for cid, c in clients.items()}

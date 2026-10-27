@@ -17,6 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from experiments.phase3_typing import LEARN_COLS, SEEDS, collect  # noqa: E402
+from src.utils.bench import raw_dir, res_dir, scn_dir  # noqa: E402
 from src.detect.drift_type import FEATURE_NAMES  # noqa: E402
 
 LABEL_FREE = [FEATURE_NAMES.index(n) for n in ("dF_pre", "dF_post", "dF_delta", "dF_ramp", "dF_slope", "ent_delta", "ent_ramp",
@@ -24,7 +25,7 @@ LABEL_FREE = [FEATURE_NAMES.index(n) for n in ("dF_pre", "dF_post", "dF_delta", 
 
 
 def main():
-    tuned = json.loads((ROOT / "results/phase3/detector_report.json").read_text())["tuned"]
+    tuned = json.loads((res_dir(ROOT, "phase3") / "detector_report.json").read_text())["tuned"]
     rows = collect("detected", tuned)
     X = np.stack([r["x"] for r in rows])
     y = np.array([r["mode"] for r in rows])
@@ -56,8 +57,8 @@ def main():
         by = [float(np.mean(p[sev == s] == y[sev == s])) for s in ("low", "med", "high")]
         L.append(f"| {n} | {acc:.3f} | {rv:.2f} | {rr:.2f} | {by[0]:.2f} | {by[1]:.2f} | {by[2]:.2f} |")
         res[n] = {"acc": acc, "recall_virtual": rv, "recall_real": rr}
-    (ROOT / "results/phase3/mode_typing.md").write_text("\n".join(L), encoding="utf-8")
-    (ROOT / "results/phase3/mode_typing.json").write_text(json.dumps(res, indent=1), encoding="utf-8")
+    (res_dir(ROOT, "phase3") / "mode_typing.md").write_text("\n".join(L), encoding="utf-8")
+    (res_dir(ROOT, "phase3") / "mode_typing.json").write_text(json.dumps(res, indent=1), encoding="utf-8")
     print("\n".join(L))
 
 

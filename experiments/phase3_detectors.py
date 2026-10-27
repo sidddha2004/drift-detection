@@ -17,6 +17,7 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
+from src.utils.bench import raw_dir, res_dir, scn_dir  # noqa: E402
 from src.detect.detectors import (ADWINErr, MMDDet, PHEnt, PHErr, PHErrC, PHErrSparse, TwoLevel, make_calibration,  # noqa: E402
                                   run_detector)
 from src.detect.evaluate import aggregate, match_stream  # noqa: E402
@@ -24,7 +25,7 @@ from src.utils.io import run_metadata  # noqa: E402
 
 TUNE_SEEDS, VAL_SEEDS = [1001, 1002, 1003], list(range(1004, 1011))
 FA_BOUND = 1.0
-CACHE = ROOT / "results/raw/phase3"
+CACHE = raw_dir(ROOT, "phase3")
 
 # Grids v2: the first run (grids v1, logged in decisions.md) put several optima on the grid edge, so the grids were
 # extended in the direction of the edge and D2c (class-conditioned error residual) was added. Same effort for every detector.
@@ -168,7 +169,7 @@ def main():
         report["sweep"][name] = cells
         L.append(f"| {name} | " + " | ".join(cells) + " |")
 
-    out = ROOT / "results/phase3"
+    out = res_dir(ROOT, "phase3")
     (out / "detector_report.md").write_text("\n".join(L), encoding="utf-8")
     (out / "detector_report.json").write_text(json.dumps({"meta": run_metadata(), **report}, indent=1, default=float), encoding="utf-8")
     print("\n".join(L))

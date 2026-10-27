@@ -1,0 +1,11 @@
+# Mode (virtual vs real) identification from detected alarms
+
+1099 episodes (662 virtual, 437 real), leave-one-seed-out over seeds 1001-1010.
+
+| classifier | accuracy | recall virtual | recall real | acc low | acc med | acc high |
+|---|---|---|---|---|---|---|
+| majority | 0.602 | 1.00 | 0.00 | 0.45 | 0.56 | 0.68 |
+| rule dF_delta>0.05 | 0.690 | 0.65 | 0.75 | 0.64 | 0.66 | 0.73 |
+| logreg label-free | 0.710 | 0.73 | 0.68 | 0.51 | 0.65 | 0.81 |
+| gboost label-free | 0.839 | 0.92 | 0.72 | 0.74 | 0.83 | 0.88 |
+| gboost all features | 0.857 | 0.92 | 0.76 | 0.79 | 0.84 | 0.89 |

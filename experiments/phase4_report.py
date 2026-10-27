@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 OUT = ROOT / "results/phase4"
-FILES = ["s1_virtual_first_look", "s1_real_first_look", "typed_virtual", "typed_real"]
+FILES = ["s1_virtual_first_look", "s1_real_first_look", "typed_virtual", "typed_real", "mode_typed", "learned_s1", "learned_s234", "learned_conf80"]
 
 
 def load():
@@ -105,6 +105,45 @@ def main():
         if diffs:
             L += ["", f"Mean (typed - best fixed) over {len(diffs)} variants: {np.mean(diffs):+.3f}. "
                       "The best fixed policy is picked per variant, i.e. the comparison favours the fixed side.", ""]
+    # deployable (detector-triggered) systems side by side
+    cols = ["frozen_E3b_personal", "ph_full_fed_E5", "ph_align", "ph_head_long", "typed_learned", "typed_learned_conf80", "ph_mode_oracle"]
+    dep = defaultdict(lambda: defaultdict(list))
+    for r in runs:
+        dep[(r["scenario"], r["variant"])][r["policy"]].append(r["metrics"]["post_change_f1"])
+    L += ["## Deployable (detector-triggered) systems, post-change macro-F1 (3 tuning seeds, immediate labels)", "",
+          "| variant | " + " | ".join(cols) + " |", "|---|" + "---|" * len(cols)]
+    tot = defaultdict(list)
+    for k, v in sorted(dep.items()):
+        if not any(c in v for c in cols[1:]):
+            continue
+        cells = []
+        for c in cols:
+            if c in v:
+                cells.append(f"{np.mean(v[c]):.3f}")
+                tot[c].append((k, np.mean(v[c])))
+            else:
+                cells.append("-")
+        L.append(f"| {k[0]} {k[1]} | " + " | ".join(cells) + " |")
+    common = set.intersection(*[{k for k, _ in tot[c]} for c in cols if tot[c]]) if tot else set()
+    if common:
+        L.append("| **mean (variants common to all)** | " + " | ".join(
+            f"**{np.mean([m for k, m in tot[c] if k in common]):.3f}**" if tot[c] else "-" for c in cols) + " |")
+        L += ["", f"{len(common)} variants common to all columns. typed_* use a mode classifier (virtual / real) after a 5-round "
+                  "typing delay; ph_mode_oracle uses the true mode; conf80 applies alignment only if the classifier is >= 80% sure the drift is virtual.", ""]
+    # what does the 4-way type add on top of the 2-way (virtual / real) mode?  (oracle typing, S2-S4)
+    by2 = defaultdict(lambda: defaultdict(list))
+    for r in runs:
+        by2[(r["scenario"], r["variant"])][r["policy"]].append(r["metrics"]["post_change_f1"])
+    four = {k: pol for k, pol in by2.items() if "typed_oracle" in pol and "mode_typed_oracle" in pol}
+    if four:
+        L += ["## Value of the 4-way type beyond the 2-way mode (both with oracle labels), post-change F1", "",
+              "| variant | 4-way typed_oracle | 2-way mode_typed_oracle | difference |", "|---|---|---|---|"]
+        dd = []
+        for (sc, v), pol in sorted(four.items()):
+            a, b = np.mean(pol["typed_oracle"]), np.mean(pol["mode_typed_oracle"])
+            dd.append(a - b)
+            L.append(f"| {sc} {v} | {a:.3f} | {b:.3f} | {a - b:+.3f} |")
+        L += ["", f"Mean 4-way minus 2-way over {len(dd)} variants: {np.mean(dd):+.3f}.", ""]
     (OUT / "summary.md").write_text("\n".join(L), encoding="utf-8")
     curves(runs, "s1_virtual", [("S1", "virtual_offset_partial"), ("S1", "virtual_gain_partial"), ("S1", "virtual_rotation_partial")],
            ["frozen_E3b_personal", "periodic_E3c_full_fed", "oracle_full_fed", "oracle_adapter_fed", "oracle_align", "ph_full_fed_E5", "ph_align"])

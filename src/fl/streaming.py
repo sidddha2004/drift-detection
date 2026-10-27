@@ -20,6 +20,7 @@ import torch.nn.functional as F
 
 from src.data import ClientData
 from src.detect.detectors import PageHinkley
+from src.detect.signals import window_stats
 from src.drift import ClientStream
 from src.drift.schedule import DriftEvent
 from src.eval import classification_metrics
@@ -107,6 +108,8 @@ class Policy:
     period: int = 10                # periodic trigger: all clients every `period` rounds
     detector: Tuple[float, float] = (0.05, 8.0)                      # PH (delta, lambda) on the error bit
     cooldown_windows: int = 30
+    typer: Optional[Callable] = None   # deployable typing: typer(cid, record) -> info dict, called `typing_delay` rounds after an alarm
+    typing_delay: int = 5
     start_model: str = "personal"   # "personal" (E3b) | "global" (E3)
 
 
@@ -146,6 +149,8 @@ class _Client:
     window: int = 0
     episode_left: int = 0
     alarm_round: int = 0
+    pending: Optional[Tuple[int, int, int]] = None    # (decide_round, alarm_window, alarm_round) while waiting for typing evidence
+    sig: Dict[str, List] = field(default_factory=lambda: {"feat": [], "ent": [], "pred": [], "err": []})
     library: List = field(default_factory=list)       # cached adapter states of finished adaptation episodes
     init_state: Optional[Dict] = None                  # adapter state at wrap time (identity input map, original head)
     resp: Optional[Response] = None
@@ -185,7 +190,16 @@ def run_stream(clients: Dict[int, ClientData], start_models: Dict[int, torch.nn.
             st = C[c]
             x, y = st.stream.arrival_batch(r)
             xt, yt = to_tensors(x, y)
-            pred = predict(st.model, xt)
+            if policy.typer is not None:
+                with torch.no_grad():
+                    st.model.eval()
+                    pr = torch.softmax(st.model(xt), 1)
+                pred = pr.argmax(1).cpu().numpy()
+                ent = (-(pr * torch.log(pr.clamp_min(1e-12))).sum(1)).cpu().numpy()
+                st.sig["feat"].append(window_stats(x)); st.sig["ent"].append(ent); st.sig["pred"].append(pred.astype(np.int16))
+                st.sig["err"].append((pred != y).astype(np.float32))
+            else:
+                pred = predict(st.model, xt)
             err = (pred != y).astype(np.float64)
             st.buf_x.append(xt); st.buf_y.append(yt); st.buf_round.append(r)
             labels_used += len(y)
@@ -197,8 +211,19 @@ def run_stream(clients: Dict[int, ClientData], start_models: Dict[int, torch.nn.
                     st.last_alarm_window = st.window
                 if st.ph.m - st.ph.mmin > st.ph.lam:      # reset after every crossing (also inside cooldown)
                     st.ph.reset()
-            if policy.trigger == "detector" and fired and st.episode_left == 0:
-                triggered[c] = {"source": "detector"}
+            if policy.trigger == "detector" and fired and st.episode_left == 0 and st.pending is None:
+                if policy.typer is None:
+                    triggered[c] = {"source": "detector"}
+                else:
+                    st.pending = (r + policy.typing_delay, st.window, r)
+            if st.pending is not None and r >= st.pending[0]:
+                rec = {"feat": np.concatenate(st.sig["feat"]), "ent": np.concatenate(st.sig["ent"]), "pred": np.concatenate(st.sig["pred"]),
+                       "err": np.concatenate(st.sig["err"]), "per_round": st.stream.per_round, "alarm_window": st.pending[1] - 1,
+                       "alarm_round": st.pending[2], "round": r}
+                info = policy.typer(c, rec)
+                st.pending = None
+                if info is not None and st.episode_left == 0:
+                    info = dict(info); info.setdefault("source", "detector"); triggered[c] = info
             elif policy.trigger == "oracle":
                 cps = [(cp["round"], cp["kind"], j) for e in events[c] for j, cp in enumerate([q for q in e.change_points(n_rounds) if q["kind"] == "onset"])]
                 if policy.oracle_offsets:

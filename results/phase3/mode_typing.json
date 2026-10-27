@@ -1,0 +1,27 @@
+{
+ "majority": {
+  "acc": 0.6127292340884574,
+  "recall_virtual": 1.0,
+  "recall_real": 0.0
+ },
+ "rule dF_delta>0.05": {
+  "acc": 0.6548004314994607,
+  "recall_virtual": 0.6056338028169014,
+  "recall_real": 0.7325905292479109
+ },
+ "logreg label-free": {
+  "acc": 0.7313915857605178,
+  "recall_virtual": 0.7112676056338029,
+  "recall_real": 0.7632311977715878
+ },
+ "gboost label-free": {
+  "acc": 0.8446601941747572,
+  "recall_virtual": 0.920774647887324,
+  "recall_real": 0.724233983286908
+ },
+ "gboost all features": {
+  "acc": 0.8414239482200647,
+  "recall_virtual": 0.9313380281690141,
+  "recall_real": 0.6991643454038997
+ }
+}

@@ -1,0 +1,65 @@
+# Phase 3: drift-type classification
+
+Seeds 1001-1010 (tuning side), leave-one-seed-out. Look-ahead 5 rounds after the alarm; learned models do not see `n_prior`. Identifiable 4-way score excludes the first onset of recurring drifts.
+
+## Alarm source: oracle
+
+1890 identifiable episodes {'sudden': 840, 'gradual': 510, 'recurring': 270, 'feature_level': 270}; 270 recurring_first episodes.
+
+| classifier | accuracy | macro-F1 | recall sudden | recall gradual | recall recurring | recall feature_level |
+|---|---|---|---|---|---|---|
+| majority | 0.444 | 0.154 | 1.00 | 0.00 | 0.00 | 0.00 |
+| rule | 0.349 | 0.278 | 0.39 | 0.50 | 0.05 | 0.23 |
+| logreg | 0.508 | 0.529 | 0.42 | 0.57 | 0.87 | 0.29 |
+| gboost | 0.633 | 0.589 | 0.78 | 0.47 | 1.00 | 0.11 |
+
+Accuracy by severity (low / med / high) and by mode (virtual / real):
+
+| classifier | low | med | high | virtual | real |
+|---|---|---|---|---|---|
+| majority | 0.44 | 0.44 | 0.44 | 0.37 | 0.65 |
+| rule | 0.32 | 0.35 | 0.38 | 0.36 | 0.32 |
+| logreg | 0.44 | 0.51 | 0.57 | 0.48 | 0.59 |
+| gboost | 0.58 | 0.65 | 0.67 | 0.58 | 0.79 |
+
+Confusion matrix of gboost (rows = truth, columns = predicted, order sudden, gradual, recurring, feature_level):
+
+    [657, 135, 0, 48]
+    [253, 239, 0, 18]
+    [1, 0, 269, 0]
+    [181, 58, 0, 31]
+
+recurring_first (not identifiable) predicted as: {'rule': {'feature_level': 58, 'gradual': 108, 'sudden': 104}, 'logreg': {'gradual': 97, 'sudden': 106, 'feature_level': 64, 'recurring': 3}, 'gboost': {'sudden': 217, 'gradual': 34, 'feature_level': 19}}
+
+Feature importance (gboost, descriptive): mem_returned 0.33, dF_pre 0.08, err_delta 0.07, dF_delta 0.05, dF_ramp 0.05, mem_cos 0.05
+
+## Alarm source: detected
+
+831 identifiable episodes {'sudden': 425, 'gradual': 218, 'recurring': 88, 'feature_level': 100}; 96 recurring_first episodes.
+
+| classifier | accuracy | macro-F1 | recall sudden | recall gradual | recall recurring | recall feature_level |
+|---|---|---|---|---|---|---|
+| majority | 0.511 | 0.169 | 1.00 | 0.00 | 0.00 | 0.00 |
+| rule | 0.375 | 0.251 | 0.53 | 0.29 | 0.01 | 0.22 |
+| logreg | 0.345 | 0.300 | 0.35 | 0.42 | 0.36 | 0.16 |
+| gboost | 0.462 | 0.323 | 0.72 | 0.22 | 0.19 | 0.13 |
+
+Accuracy by severity (low / med / high) and by mode (virtual / real):
+
+| classifier | low | med | high | virtual | real |
+|---|---|---|---|---|---|
+| majority | 0.53 | 0.53 | 0.50 | 0.41 | 0.68 |
+| rule | 0.38 | 0.39 | 0.37 | 0.35 | 0.41 |
+| logreg | 0.28 | 0.32 | 0.38 | 0.30 | 0.42 |
+| gboost | 0.48 | 0.46 | 0.46 | 0.41 | 0.55 |
+
+Confusion matrix of gboost (rows = truth, columns = predicted, order sudden, gradual, recurring, feature_level):
+
+    [305, 81, 16, 23]
+    [153, 49, 5, 11]
+    [43, 17, 17, 11]
+    [58, 20, 9, 13]
+
+recurring_first (not identifiable) predicted as: {'rule': {'sudden': 63, 'gradual': 21, 'feature_level': 12}, 'logreg': {'gradual': 24, 'feature_level': 24, 'sudden': 17, 'recurring': 31}, 'gboost': {'sudden': 63, 'gradual': 21, 'feature_level': 8, 'recurring': 4}}
+
+Feature importance (gboost, descriptive): ent_delta 0.09, sr_dF 0.08, dF_pre 0.07, dF_delta 0.07, dF_ramp 0.06, sr_ent 0.06

@@ -17,9 +17,10 @@ import numpy as np
 from .detectors import Calibration
 
 TYPES = ("sudden", "gradual", "recurring", "feature_level")
-PRE, LOOKAHEAD_ROUNDS = 30, 5
+PRE, PRE_LONG, LOOKAHEAD_ROUNDS = 30, 60, 5
 FEATURE_NAMES = ["dF_pre", "dF_post", "dF_delta", "dF_ramp", "dF_slope", "ent_delta", "ent_ramp", "err_delta", "err_ramp",
-                 "imu_share_max", "imu_ratio", "imu_entropy", "mem_cos", "mem_returned", "mem_recur", "n_prior"]
+                 "imu_share_max", "imu_ratio", "imu_entropy", "mem_cos", "mem_returned", "mem_recur", "n_prior",
+                 "rise_dF", "rise_ent", "rise_err", "sr_dF", "sr_ent", "sr_err"]
 
 
 def series(S: Dict[str, np.ndarray], cal: Calibration) -> Dict[str, np.ndarray]:
@@ -49,6 +50,52 @@ def _ramp(y: np.ndarray) -> float:
     """Late third minus early third of the post-alarm series: ~0 for a step, > 0 while still rising."""
     k = max(1, len(y) // 3)
     return float(y[-k:].mean() - y[:k].mean())
+
+
+def _smooth(y: np.ndarray, k: int) -> np.ndarray:
+    if k <= 1 or len(y) < k:
+        return y
+    c = np.convolve(y, np.ones(k) / k, mode="same")
+    return c
+
+
+def rise_and_fit(y: np.ndarray, per_round: int, smooth: int = 5) -> Tuple[float, float]:
+    """Retrospective shape of a change inside a segment (history before the alarm + look-ahead).
+
+    rise  : rounds between 10% and 90% of the total level change (0 if there is no clear change)
+    sr    : SSE(best ramp) / SSE(best step), < 1 means a ramp explains the data better than a step
+    """
+    n = len(y)
+    if n < 20:
+        return 0.0, 1.0
+    ys = _smooth(y, smooth)
+    b, f = ys[:8].mean(), ys[-8:].mean()
+    amp = f - b
+    noise = y[:max(8, n // 4)].std() + 1e-9
+    rise = 0.0
+    if abs(amp) > 1.0 * noise / np.sqrt(8):
+        lo = np.flatnonzero((ys - b) / amp >= 0.1)
+        hi = np.flatnonzero((ys - b) / amp >= 0.9)
+        if len(lo) and len(hi) and hi[0] >= lo[0]:
+            rise = float(hi[0] - lo[0]) / per_round
+    # SSE of a step vs a ramp (coarse grid over change points)
+    cs = np.arange(3, n - 3, 2)
+    csum, csq = np.cumsum(y), np.cumsum(y ** 2)
+    sse_step = np.inf
+    for c in cs:
+        m1, m2 = csum[c - 1] / c, (csum[-1] - csum[c - 1]) / (n - c)
+        sse_step = min(sse_step, (csq[c - 1] - c * m1 ** 2) + ((csq[-1] - csq[c - 1]) - (n - c) * m2 ** 2))
+    sse_ramp = np.inf
+    x = np.arange(n)
+    for c1 in cs[::2]:
+        for c2 in cs[::2]:
+            if c2 - c1 < 6:
+                continue
+            ramp = np.clip((x - c1) / (c2 - c1), 0, 1)
+            A = np.stack([np.ones(n), ramp], 1)
+            coef, res, *_ = np.linalg.lstsq(A, y, rcond=None)
+            sse_ramp = min(sse_ramp, float(((A @ coef - y) ** 2).sum()))
+    return rise, float(sse_ramp / (sse_step + 1e-9)) if np.isfinite(sse_step) and np.isfinite(sse_ramp) else 1.0
 
 
 @dataclass
@@ -81,11 +128,15 @@ def episode_features(ser: Dict[str, np.ndarray], t0: int, per_round: int, mem: M
         cos = float(max(float(sig @ s) for s in mem.sigs))
         pre_sig = np.concatenate([dev[pre].mean(0) - 0.0, [ent[pre].mean(), 5 * err[pre].mean()]])
         returned = float(1.0 - min(1.0, np.linalg.norm(pre_sig) / (max(mem.levels) + 1e-9)))
+    seg = slice(max(0, t0 - PRE_LONG), t0 + F + 1)
+    r_d, s_d = rise_and_fit(dF[seg], per_round)
+    r_e, s_e = rise_and_fit(ent[seg], per_round)
+    r_r, s_r = rise_and_fit(_smooth(err[seg], 9), per_round, smooth=1)
     feats = np.array([pre_dF, post_dF, post_dF - pre_dF, _ramp(dF[post]), _slope(dF[t0 - 10:t0 + F + 1]),
                       ent[post].mean() - ent[pre].mean(), _ramp(ent[post]),
                       err[post].mean() - err[pre].mean(), _ramp(err[post]),
                       share.max(), float(pos.max() / (np.median(pos) + 1e-3)), imu_entropy,
-                      cos, returned, cos * returned, float(len(mem.sigs))])
+                      cos, returned, cos * returned, float(len(mem.sigs)), r_d, r_e, r_r, s_d, s_e, s_r])
     return feats, np.append(sig, norm)
 
 

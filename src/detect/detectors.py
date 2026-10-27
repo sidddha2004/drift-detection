@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
 
 import numpy as np
-from scipy.stats import binom
+from scipy.stats import poisson
 
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -26,6 +26,7 @@ class Calibration:
     ent_mu_all: float
     ent_sd_all: float
     err_rate: float                      # overall error rate on the calibration pool
+    err_k: Dict[int, float]              # smoothed error rate per predicted class (pseudo-count toward the global rate)
     feat: np.ndarray                     # (n, F) standardised window statistics
     pred: np.ndarray                     # (n,) predicted class
     f_mu: np.ndarray
@@ -47,7 +48,9 @@ def make_calibration(cal: Dict[str, np.ndarray], min_class: int = 5) -> Calibrat
     z = (f - f_mu) / f_sd
     sub = z[np.random.default_rng(0).permutation(len(z))[:200]]
     d2 = ((sub[:, None] - sub[None]) ** 2).sum(-1)
-    return Calibration(mu, sd, mu_a, sd_a, float(cal["err"].mean()), z, pred, f_mu, f_sd,
+    pg = max(float(cal["err"].mean()), 0.01)
+    err_k = {int(k): float((cal["err"][pred == k].sum() + 10 * pg) / ((pred == k).sum() + 10)) for k in np.unique(pred)}
+    return Calibration(mu, sd, mu_a, sd_a, float(cal["err"].mean()), err_k, z, pred, f_mu, f_sd,
                        float(np.median(d2[np.triu_indices(len(sub), 1)]) + 1e-9))
 
 
@@ -61,33 +64,52 @@ def mmd2_unbiased(a: np.ndarray, b: np.ndarray, bw2: float) -> float:
     return float((kaa.sum() - np.trace(kaa)) / (n * (n - 1)) + (kbb.sum() - np.trace(kbb)) / (m * (m - 1)) - 2 * kab.mean())
 
 
-def class_matched_reference(cal: Calibration, pred_buf: np.ndarray, rng: np.random.Generator, exclude=None) -> np.ndarray:
-    """For every buffer window draw a calibration window with the same predicted class (fallback: any)."""
+MIN_REF, MIN_BUF = 4, 8
+
+
+def class_matched_reference(cal: Calibration, pred_buf: np.ndarray, rng: np.random.Generator, exclude=None):
+    """For every buffer window draw a calibration window with the same predicted class.
+
+    Windows whose predicted class has fewer than MIN_REF calibration windows are dropped (no fallback: comparing a
+    class against a different class would look like drift). Returns (reference (m, F), keep mask (len(pred_buf),)).
+    """
     ok = np.ones(len(cal.pred), dtype=bool)
     if exclude is not None:
         ok[exclude] = False
     allowed = np.flatnonzero(ok)
-    out = np.empty((len(pred_buf), cal.feat.shape[1]))
+    keep = np.zeros(len(pred_buf), dtype=bool)
+    ref = np.zeros((len(pred_buf), cal.feat.shape[1]))
     for k in np.unique(pred_buf):
         sel = np.flatnonzero(pred_buf == k)
         pool = allowed[cal.pred[allowed] == k]
-        if len(pool) == 0:
-            pool = allowed
-        out[sel] = cal.feat[rng.choice(pool, size=len(sel))]
-    return out
+        if len(pool) >= MIN_REF:
+            ref[sel] = cal.feat[rng.choice(pool, size=len(sel))]
+            keep[sel] = True
+    return ref[keep], keep
 
 
-def mmd_null(cal: Calibration, B: int, draws: int = 120, seed: int = 0) -> np.ndarray:
-    """Null of the class-matched MMD^2 for buffers of B consecutive CLEAN calibration windows."""
+def mmd_null(cal: Calibration, B: int, draws: int = 150, seed: int = 0, chunk: int = 16) -> np.ndarray:
+    """Null of the class-matched MMD^2 for a buffer of B CLEAN windows.
+
+    The calibration pool is cut into chunks of `chunk` windows (the stream's block size). A buffer is B windows taken
+    from 1-2 random chunks (random blocks, like the arrival stream); its reference is class-matched from all OTHER
+    chunks, so the buffer never contributes to its own reference (a deployed arrival block vs the calibration pool).
+    """
     rng = np.random.default_rng(seed)
     n = len(cal.pred)
+    cid = np.arange(n) // chunk
+    chunks = np.unique(cid)
     out = []
-    for _ in range(draws):
-        s = int(rng.integers(0, n - B + 1))
-        idx = np.arange(s, s + B)
-        ref = class_matched_reference(cal, cal.pred[idx], rng, exclude=idx)
-        out.append(mmd2_unbiased(cal.feat[idx], ref, cal.bw2))
-    return np.sort(np.asarray(out))
+    for _ in range(draws * 3):
+        pick = rng.choice(chunks, size=min(len(chunks), int(rng.integers(1, 3))), replace=False)
+        pool = np.flatnonzero(np.isin(cid, pick))
+        idx = np.sort(rng.choice(pool, size=min(B, len(pool)), replace=False))
+        ref, keep = class_matched_reference(cal, cal.pred[idx], rng, exclude=pool)
+        if keep.sum() >= MIN_BUF:
+            out.append(mmd2_unbiased(cal.feat[idx][keep], ref, cal.bw2))
+        if len(out) >= draws:
+            break
+    return np.sort(np.asarray(out)) if out else np.array([np.inf])
 
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -156,6 +178,35 @@ class PHErr(Detector):
         return self.ph.update(float(S["err"][i]))
 
 
+class PHErrSparse(Detector):
+    """Page-Hinkley on the error bit with only every `period`-th window labelled (label-budget baseline for D5)."""
+
+    def __init__(self, period: int, delta: float, lam: float, warm: int = 10):
+        self.period, self.ph = period, PageHinkley(delta, lam, warm)
+        self.labels_per_window = 1.0 / period
+
+    def reset(self):
+        self.ph.reset()
+
+    def step(self, i, S):
+        return self.ph.update(float(S["err"][i])) if i % self.period == 0 else False
+
+
+class PHErrC(Detector):
+    """Page-Hinkley on the error residual err - p_k, with p_k the calibrated error rate of the predicted class."""
+    labels_per_window = 1.0
+
+    def __init__(self, cal: Calibration, delta: float, lam: float, warm: int = 25):
+        self.cal, self.ph = cal, PageHinkley(delta, lam, warm)
+
+    def reset(self):
+        self.ph.reset()
+
+    def step(self, i, S):
+        p = self.cal.err_k.get(int(S["pred"][i]), max(self.cal.err_rate, 0.01))
+        return self.ph.update(float(S["err"][i]) - p)
+
+
 class PHEnt(Detector):
     def __init__(self, cal: Calibration, delta: float, lam: float, warm: int = 25):
         self.cal, self.ph = cal, PageHinkley(delta, lam, warm)
@@ -173,7 +224,7 @@ class PHEnt(Detector):
 
 
 class MMDDet(Detector):
-    def __init__(self, cal: Calibration, q: float, persist: int, B: int = 32, step: int = 4):
+    def __init__(self, cal: Calibration, q: float, persist: int, B: int = 16, step: int = 3):
         self.cal, self.B, self.every, self.persist = cal, B, step, persist
         if cal.null is None or len(cal.null) == 0 or getattr(cal, "_null_B", None) != B:
             cal.null = mmd_null(cal, B)
@@ -193,8 +244,10 @@ class MMDDet(Detector):
             return False
         idx = np.arange(i - self.B + 1, i + 1)
         buf = (S["feat"][idx] - self.cal.f_mu) / self.cal.f_sd
-        ref = class_matched_reference(self.cal, S["pred"][idx], self.rng)
-        stat = mmd2_unbiased(buf, ref, self.cal.bw2)
+        ref, keep = class_matched_reference(self.cal, S["pred"][idx], self.rng)
+        if keep.sum() < MIN_BUF:                      # too few windows of calibrated classes: no evidence either way
+            return False
+        stat = mmd2_unbiased(buf[keep], ref, self.cal.bw2)
         self.hits = self.hits + 1 if stat > self.thr else 0
         return self.hits >= self.persist
 
@@ -225,10 +278,11 @@ class TwoLevel(Detector):
         if self.pending is not None:                          # stage B: labels requested for windows pending..i
             if i - self.pending + 1 < self.L:
                 return False
-            errs = int(S["err"][self.pending:i + 1].sum())
+            sl = slice(self.pending, i + 1)
+            errs = int(S["err"][sl].sum())
+            mu = sum(self.cal.err_k.get(int(k), max(self.cal.err_rate, 0.01)) for k in S["pred"][sl])
             self.pending = None
-            p0 = max(self.cal.err_rate, 0.03)
-            return bool(binom.sf(errs - 1, self.L, p0) < self.alpha_b)
+            return bool(poisson.sf(errs - 1, max(mu, 0.05)) < self.alpha_b)
         trig = self.d3.step(i, S)
         trig = self.d4.step(i, S) or trig
         if self.sent and i % self.sent[0] == 0:

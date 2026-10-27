@@ -1,0 +1,67 @@
+loaded [1s]
+D1_adwin_err: tuned {'delta': 0.3} feasible=True delay=17.93 recall=0.22 fa/1000=0.51 [5s]
+D2_ph_err: tuned {'delta': 0.1, 'lam': 8} feasible=True delay=16.50 recall=0.36 fa/1000=0.60 [5s]
+D3_ph_entropy: tuned {'delta': 0.5, 'lam': 40} feasible=False delay=13.96 recall=0.49 fa/1000=3.60 [5s]
+D:\drift\venv\Lib\site-packages\numpy\lib\function_base.py:4655: RuntimeWarning: invalid value encountered in subtract
+  diff_b_a = subtract(b, a)
+D4_mmd: tuned {'q': 0.999, 'persist': 3} feasible=False delay=17.87 recall=0.23 fa/1000=3.09 [55s]
+D5_two_level: tuned {'ent_lam': 20, 'q': 0.99, 'sent_lam': 4, 'alpha_b': 0.01} feasible=False delay=16.54 recall=0.36 fa/1000=1.06 [119s]
+D5ns_two_level_no_sentinel: tuned {'ent_lam': 20, 'q': 0.99, 'alpha_b': 0.01} feasible=False delay=16.54 recall=0.36 fa/1000=1.06 [150s]
+# Phase 3: detector tuning and validation
+
+Tuned on seeds [1001, 1002, 1003] (S0 + all S1-S4 variants, `med` severity, fixed timing) under the bound <= 1.0 false alarm per 1,000 clean windows; validated on seeds [1004, 1005, 1006, 1007, 1008, 1009, 1010]. Horizon 20 rounds; a miss costs the full horizon in the delay objective.
+
+## Tuned configurations
+
+| detector | config | feasible on tuning | tuning delay (rounds) | tuning recall | tuning FA/1000 |
+|---|---|---|---|---|---|
+| D1_adwin_err | `{'delta': 0.3}` | True | 17.93 | 0.22 | 0.51 |
+| D2_ph_err | `{'delta': 0.1, 'lam': 8}` | True | 16.50 | 0.36 | 0.60 |
+| D3_ph_entropy | `{'delta': 0.5, 'lam': 40}` | False | 13.96 | 0.49 | 3.60 |
+| D4_mmd | `{'q': 0.999, 'persist': 3}` | False | 17.87 | 0.23 | 3.09 |
+| D5_two_level | `{'ent_lam': 20, 'q': 0.99, 'sent_lam': 4, 'alpha_b': 0.01}` | False | 16.54 | 0.36 | 1.06 |
+| D5ns_two_level_no_sentinel | `{'ent_lam': 20, 'q': 0.99, 'alpha_b': 0.01}` | False | 16.54 | 0.36 | 1.06 |
+
+## Validation (unseen seeds), `med` severity, all drifted variants
+
+| detector | recall | mean delay (rounds, detected only) | objective delay | FA / 1000 clean windows | redundant alarms | labels / 1000 windows |
+|---|---|---|---|---|---|---|
+| D1_adwin_err | 0.20 | 11.2 | 18.2 | 0.25 (20/81156) | 104 | 1000 |
+| D2_ph_err | 0.37 | 9.5 | 16.1 | 0.37 (30/81156) | 110 | 1000 |
+| D3_ph_entropy | 0.48 | 8.5 | 14.5 | 4.02 (326/81156) | 153 | 0 |
+| D4_mmd | 0.26 | 10.8 | 17.6 | 3.01 (244/81156) | 87 | 0 |
+| D5_two_level | 0.31 | 11.3 | 17.3 | 0.91 (74/81156) | 152 | 482 |
+| D5ns_two_level_no_sentinel | 0.31 | 11.2 | 17.3 | 0.91 (74/81156) | 144 | 339 |
+
+## Validation by drift mode (recall / delay rounds)
+
+| detector | virtual | real |
+|---|---|---|
+| D1_adwin_err | 0.14 / 10.9 | 0.36 / 11.5 |
+| D2_ph_err | 0.27 / 10.1 | 0.63 / 8.8 |
+| D3_ph_entropy | 0.56 / 8.0 | 0.25 / 11.2 |
+| D4_mmd | 0.29 / 10.7 | 0.16 / 11.0 |
+| D5_two_level | 0.34 / 11.5 | 0.26 / 10.5 |
+| D5ns_two_level_no_sentinel | 0.34 / 11.5 | 0.24 / 10.0 |
+
+## Validation by ground-truth type (recall / delay rounds)
+
+| detector | sudden | gradual | recurring | feature_level |
+|---|---|---|---|---|
+| D1_adwin_err | 0.26 / 11.0 | 0.08 / 16.2 | 0.23 / 9.9 | 0.17 / 11.0 |
+| D2_ph_err | 0.47 / 9.4 | 0.29 / 12.8 | 0.30 / 6.2 | 0.32 / 10.5 |
+| D3_ph_entropy | 0.48 / 8.4 | 0.45 / 9.5 | 0.44 / 7.5 | 0.57 / 8.7 |
+| D4_mmd | 0.27 / 10.9 | 0.29 / 12.0 | 0.24 / 8.8 | 0.19 / 11.5 |
+| D5_two_level | 0.33 / 12.4 | 0.30 / 12.2 | 0.30 / 9.0 | 0.32 / 10.3 |
+| D5ns_two_level_no_sentinel | 0.31 / 12.2 | 0.30 / 12.2 | 0.30 / 9.1 | 0.32 / 10.3 |
+
+## Validation severity sweep (recall / FA per 1000 on the same streams)
+
+| detector | low | med | high |
+|---|---|---|---|
+| D1_adwin_err | 0.08 / 0.09 | 0.20 / 0.27 | 0.39 / 0.43 |
+| D2_ph_err | 0.16 / 0.42 | 0.37 / 0.38 | 0.64 / 0.39 |
+| D3_ph_entropy | 0.35 / 3.96 | 0.48 / 3.96 | 0.60 / 3.94 |
+| D4_mmd | 0.16 / 2.94 | 0.26 / 3.01 | 0.45 / 2.97 |
+| D5_two_level | 0.11 / 0.75 | 0.31 / 0.93 | 0.55 / 1.02 |
+| D5ns_two_level_no_sentinel | 0.11 / 0.75 | 0.31 / 0.93 | 0.54 / 1.02 |

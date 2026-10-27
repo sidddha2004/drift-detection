@@ -149,3 +149,9 @@ Step log (in order):
 7. Retired the old pipeline: `src/data_pipeline`, its 3 test files and `run_random_client_drift_fl.py` moved to `legacy/` (A4, A7, A11, A14 now closed). Suite: 60 passed, 0 xfail.
 Caveats: severity is ordinal per transform (not comparable across transforms); virtual drift is applied at round granularity (constant alpha within a round); rotation is about the sensor x axis only; label_remap classes are chosen at random, not by activity similarity.
 Next: Phase 3 detectors (ADWIN / Page-Hinkley / entropy-MMD, two-level, drift-type classifier trained on real error streams from these scenarios) - after the user's go-ahead.
+
+### 2026-10-27 - Phase 3: detectors and drift-type classifier - branch `phase-3-detectors`
+Step log (in order):
+1. Plan written first and registered as Amendment A3 (`docs/analysis_plan.md`): tuning seeds 1001-1003, validation/classifier seeds 1004-1010, evaluation seeds untouched; signals, D1-D5 detectors, matching rules, 1 false alarm per 1,000 clean windows bound, typing protocol.
+2. Key design insight (shapes the paper's claims): (a) *real* drift leaves P(x) unchanged, so label-free detectors cannot detect it by construction; (b) the first onset of a *recurring* drift looks exactly like a sudden drift at alarm time; only a re-occurrence can be recognised (needs episode memory). The old classifier's 0% on SUDDEN (A12) came from synthetic streams; both effects must be handled explicitly when rebuilding it. We report recurring_first separately instead of letting it hurt or flatter the accuracy.
+3. Old `src/drift_detection/{drift_classifier,integrated_detector}.py` (about 1,300 untested lines, A3/A12/A13) are NOT reused; new package `src/detect/` is written test-first.

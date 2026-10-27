@@ -1,0 +1,5 @@
+seed 42    E3 0.8957 (worst 0.7295)   E3b 0.9279 (worst 0.8618)  ft epochs [2, 4, 5, 12, 13, 18, 20, 20]
+seed 123   E3 0.8866 (worst 0.7450)   E3b 0.9184 (worst 0.7319)  ft epochs [2, 5, 6, 7, 8, 11, 14, 15]
+seed 999   E3 0.8928 (worst 0.7044)   E3b 0.9434 (worst 0.8795)  ft epochs [4, 6, 8, 10, 11, 15, 15, 19]
+seed 2024  E3 0.9045 (worst 0.7685)   E3b 0.9272 (worst 0.7316)  ft epochs [1, 2, 5, 10, 12, 16, 16, 20]
+seed 7     E3 0.8834 (worst 0.7047)   E3b 0.9600 (worst 0.9318)  ft epochs [4, 6, 10, 13, 17, 17, 19, 20]

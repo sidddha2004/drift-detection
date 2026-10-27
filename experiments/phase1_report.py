@@ -110,6 +110,26 @@ def main():
             out.append(f"| {NAMES[m]} | {ms(g1[m])} | {ms([r['test']['mean_macro_f1'] for r in by_b[m]])} |")
         out.append("\nFedAvg was still improving at the initial budget (best round 24-29 of 30); at the locked budget it converges "
                    "well before the last round.")
+    for mode, by in (("blocked", by_b), ("temporal", by_t if tp.exists() else None)):
+        fp = ROOT / f"results/phase1/fedavg_ft_{mode}.json"
+        if by is None or not fp.exists():
+            continue
+        ft = json.loads(fp.read_text())
+        e3 = [r for r in ft["runs"] if r["method"] == "E3_fedavg"]
+        e3b = [r for r in ft["runs"] if r["method"] == "E3b_fedavg_ft"]
+        same = all(abs(a["test"]["mean_macro_f1"] - b["test"]["mean_macro_f1"]) < 1e-9
+                   for a in e3 for b in by["E3_fedavg"] if a["seed"] == b["seed"])
+        out += ["", f"## E3b FedAvg + local fine-tuning ({mode} split)", "",
+                f"Global FedAvg model fine-tuned per client for <= {ft['finetune_epochs']} epochs (best val macro-F1). "
+                f"FedAvg part reproduces the frozen E3 results exactly: **{same}**.", "",
+                "| method | macro-F1 | worst-client macro-F1 | accuracy |", "|---|---|---|---|"]
+        for n, rs in [("E1 Local-only", by["E1_local_only"]), ("E3 FedAvg", e3), ("E3b FedAvg + FT", e3b)]:
+            out.append(f"| {n} | {ms([r['test']['mean_macro_f1'] for r in rs])} | "
+                       f"{ms([r['test']['worst_macro_f1'] for r in rs])} | {ms([r['test']['mean_accuracy'] for r in rs])} |")
+        a = np.array([r["test"]["mean_macro_f1"] for r in sorted(e3b, key=lambda r: r["seed"])])
+        b = np.array([r["test"]["mean_macro_f1"] for r in sorted(by["E1_local_only"], key=lambda r: r["seed"])])
+        lo, hi = bootstrap_ci(a - b)
+        out.append(f"\nE3b - E1: {np.mean(a - b):+.4f} (95% CI [{lo:+.4f}, {hi:+.4f}]).")
     L = out
     cc = ROOT / "results/phase1/channel_check.json"
     if cc.exists():

@@ -12,7 +12,7 @@ import torch
 
 from src.data import ClientData
 from src.eval import aggregate_clients
-from src.fl.engine import (DEVICE, TrainConfig, evaluate, fedavg, make_model, state_bytes,
+from src.fl.engine import (DEVICE, TrainConfig, evaluate, fedavg, make_model, predict, state_bytes,
                            to_tensors, train_epochs)
 from src.utils.seed import seed_everything
 
@@ -32,10 +32,11 @@ def _finish(name, seed, test_by_client, extra) -> Dict:
             "test": aggregate_clients(test_by_client), **extra}
 
 
-def run_local_only(clients, n_classes, n_channels, tc: TrainConfig, epochs: int, seed: int) -> Dict:
+def run_local_only(clients, n_classes, n_channels, tc: TrainConfig, epochs: int, seed: int,
+                   keep_predictions: bool = False) -> Dict:
     seed_everything(seed)
     T = _tensors(clients)
-    t0, test, curves, best_ep = time.time(), {}, {}, {}
+    t0, test, curves, best_ep, preds = time.time(), {}, {}, {}, {}
     for cid in T:
         gen = torch.Generator().manual_seed(seed * 1000 + cid)
         model = make_model(n_classes, n_channels, tc)
@@ -50,9 +51,13 @@ def run_local_only(clients, n_classes, n_channels, tc: TrainConfig, epochs: int,
         model.load_state_dict(best_state)
         test[cid] = evaluate(model, *T[cid]["test"], n_classes)
         curves[cid] = curve
-    return _finish("E1_local_only", seed, test,
-                   {"val_curves": curves, "best_epoch": best_ep, "train_seconds": time.time() - t0,
-                    "comm_bytes_total": 0})
+        if keep_predictions:
+            preds[cid] = predict(model, T[cid]["test"][0])
+    extra = {"val_curves": curves, "best_epoch": best_ep, "train_seconds": time.time() - t0,
+             "comm_bytes_total": 0}
+    if keep_predictions:
+        extra["test_pred"] = preds
+    return _finish("E1_local_only", seed, test, extra)
 
 
 def run_centralized(clients, n_classes, n_channels, tc: TrainConfig, epochs: int, seed: int) -> Dict:
@@ -75,8 +80,28 @@ def run_centralized(clients, n_classes, n_channels, tc: TrainConfig, epochs: int
                     "comm_bytes_total": None})
 
 
+def finetune_clients(glob, T, n_classes, tc: TrainConfig, epochs: int, seed: int):
+    """Personalise a global model: each client fine-tunes a copy on its own train data (fresh Adam), keeping the
+    epoch (1..epochs) with the best client val macro-F1. Local compute only: no extra communication."""
+    test, best_ep = {}, {}
+    for cid in T:
+        gen = torch.Generator().manual_seed(seed * 1000 + cid)
+        m = make_model(n_classes, T[cid]["train"][0].shape[-1], tc)
+        m.load_state_dict(glob.state_dict())
+        opt = torch.optim.Adam(m.parameters(), lr=tc.lr, weight_decay=tc.weight_decay)
+        best, best_state = -1.0, None
+        for ep in range(epochs):
+            train_epochs(m, *T[cid]["train"], 1, tc, gen, opt)
+            f1 = evaluate(m, *T[cid]["val"], n_classes)["macro_f1"]
+            if f1 > best:
+                best, best_state, best_ep[cid] = f1, copy.deepcopy(m.state_dict()), ep + 1
+        m.load_state_dict(best_state)
+        test[cid] = evaluate(m, *T[cid]["test"], n_classes)
+    return test, best_ep
+
+
 def run_fedavg(clients, n_classes, n_channels, tc: TrainConfig, rounds: int, local_epochs: int,
-               seed: int) -> Dict:
+               seed: int, finetune_epochs: int = 0) -> Dict:
     seed_everything(seed)
     T = _tensors(clients)
     cids = list(T)
@@ -98,9 +123,17 @@ def run_fedavg(clients, n_classes, n_channels, tc: TrainConfig, rounds: int, loc
         if f1 > best:
             best, best_state, best_round = f1, copy.deepcopy(glob.state_dict()), r
     glob.load_state_dict(best_state)
-    return _finish("E3_fedavg", seed, _eval_all(glob, T, "test", n_classes),
-                   {"val_curve": curve, "best_round": best_round, "train_seconds": time.time() - t0,
-                    "uplink_bytes_per_round": payload * len(cids),
-                    "downlink_bytes_per_round": payload * len(cids),
-                    "comm_bytes_total": 2 * payload * len(cids) * rounds,
-                    "comm_bytes_to_best": 2 * payload * len(cids) * (best_round + 1)})
+    extra = {"val_curve": curve, "best_round": best_round, "train_seconds": time.time() - t0,
+             "uplink_bytes_per_round": payload * len(cids),
+             "downlink_bytes_per_round": payload * len(cids),
+             "comm_bytes_total": 2 * payload * len(cids) * rounds,
+             "comm_bytes_to_best": 2 * payload * len(cids) * (best_round + 1)}
+    out = _finish("E3_fedavg", seed, _eval_all(glob, T, "test", n_classes), extra)
+    if finetune_epochs:
+        t1 = time.time()
+        ft_test, ft_ep = finetune_clients(glob, T, n_classes, tc, finetune_epochs, seed)
+        out["ft"] = _finish("E3b_fedavg_ft", seed, ft_test,
+                            {**{k: v for k, v in extra.items() if k not in ("val_curve", "train_seconds")},
+                             "finetune_best_epoch": ft_ep, "finetune_seconds": time.time() - t1,
+                             "train_seconds": extra["train_seconds"] + time.time() - t1})
+    return out

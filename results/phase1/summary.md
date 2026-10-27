@@ -104,6 +104,30 @@ Initial budget: 60 epochs / 30 rounds. Locked budget: 120 epochs / 60 rounds (x2
 
 FedAvg was still improving at the initial budget (best round 24-29 of 30); at the locked budget it converges well before the last round.
 
+## E3b FedAvg + local fine-tuning (blocked split)
+
+Global FedAvg model fine-tuned per client for <= 20 epochs (best val macro-F1). FedAvg part reproduces the frozen E3 results exactly: **True**.
+
+| method | macro-F1 | worst-client macro-F1 | accuracy |
+|---|---|---|---|
+| E1 Local-only | 0.8826 ± 0.0027 | 0.8300 ± 0.0139 | 0.8919 ± 0.0032 |
+| E3 FedAvg | 0.8507 ± 0.0146 | 0.6761 ± 0.0838 | 0.8973 ± 0.0041 |
+| E3b FedAvg + FT | 0.8879 ± 0.0089 | 0.8144 ± 0.0289 | 0.9095 ± 0.0045 |
+
+E3b - E1: +0.0053 (95% CI [-0.0021, +0.0120]).
+
+## E3b FedAvg + local fine-tuning (temporal split)
+
+Global FedAvg model fine-tuned per client for <= 20 epochs (best val macro-F1). FedAvg part reproduces the frozen E3 results exactly: **True**.
+
+| method | macro-F1 | worst-client macro-F1 | accuracy |
+|---|---|---|---|
+| E1 Local-only | 0.8147 ± 0.0051 | 0.7357 ± 0.0035 | 0.8328 ± 0.0055 |
+| E3 FedAvg | 0.7735 ± 0.0130 | 0.6085 ± 0.0750 | 0.8168 ± 0.0076 |
+| E3b FedAvg + FT | 0.8150 ± 0.0074 | 0.7430 ± 0.0436 | 0.8379 ± 0.0050 |
+
+E3b - E1: +0.0003 (95% CI [-0.0047, +0.0045]).
+
 ## Audit A14: effect of the wrong channel indices (E1, 30 epochs, 3 seeds)
 
 | channels | macro-F1 | accuracy |

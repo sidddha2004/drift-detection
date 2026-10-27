@@ -21,6 +21,9 @@ Newest entries at the bottom of each section. Plan of record: `docs/RESEARCH_PLA
 | D11 | **Locked baseline budget**: FedAvg 60 rounds x 2 local epochs; E1/E2 120 epochs; checkpoint chosen by mean client val macro-F1. The initial 30-round budget under-trained FedAvg (0.831 -> 0.851 at 2x). Use this budget for every method in later phases. |
 | D12 | Model channels = the **9 correct +-16g accelerometer axes** (cols 4-6, 21-23, 38-40). Primary metric = macro-F1; report worst-client too. |
 
+| D13 | **OPEN, needs author decision**: adopt a v2 data protocol that trims ~5 s from each bout edge? Recommended, because edge windows dominate the error and would cause spurious drift alarms in Phase 3. It changes the frozen baselines, so it would be a new versioned config and E1-E3b would be re-run (~50 min); the Phase 1 results stay frozen under tag `phase1-frozen`. |
+| D14 | Analysis is pre-registered in `docs/analysis_plan.md` (primary endpoint, H1-H5, 10 seeds, Holm, non-inferiority margin 1 pt, separate tuning schedule). Change only via its Amendments section. |
+
 ## 2. Audit findings still open (from the initial audit; ids used in the plan)
 
 | id | Finding | Fix lands in |
@@ -38,7 +41,8 @@ Newest entries at the bottom of each section. Plan of record: `docs/RESEARCH_PLA
 | A11 | `DriftInjector.get_drift_mask` uses `injection_point or default`, so an explicit 0 is ignored (xfail test) | Phase 2 |
 | A12 | Drift classifier scored 69% overall and 0% on SUDDEN, only on synthetic error streams | Phase 3 (WP1b) |
 | A14 | **Wrong channel indices**: old code used columns 3/20/37 = IMU *temperature* (+ two acc axes per IMU, no z). **Fixed in new `src/data` loader** (old `src/data_pipeline` still has it; retire in Phase 2/4). Evidence: with the interleaved split, temperature-only gets macro-F1 0.836 and the old channel set (0.913) beats the correct accelerometers (0.874), i.e. temperature leaks the label via sensor warm-up. | done (new loader) |
-| A15 | PAMAP2 has **natural temporal shift inside an activity**: temporal-vs-blocked test macro-F1 drops 6-8 pts for every method with no injected drift. Use it as natural-drift evidence (risk register) and keep it out of the S0 control. | used in Phase 2+ |
+| A15 | Temporal-vs-blocked test macro-F1 drops 6-8 pts for every method with no injection. **Phase 1b diagnosis: mostly NOT drift.** The first and last quarter of every activity bout are intrinsically hard (blocked-model error 0.17 / 0.14 vs 0.04-0.06 mid-bout: onset/offset/label-timing effects), and the temporal test set is exactly that last quarter. Genuine covariate shift is small (error 0.137 -> 0.175 at the same positions; train-vs-test MMD^2 2x higher). Class frequency (TV 0.009) and sensor warm-up (Spearman -0.06, p=0.52) are NOT causes. | handled: secondary sanity check only |
+| A16 | Bout-edge windows have high error in every split; they inflate error in both S0 and temporal protocols and could trigger false drift alarms. Candidate fix: trim `trim_s` seconds at both ends of each bout (D13, open). | decision needed |
 | A13 | Modules use mixed import styles (`from src.x` and `sys.path` hacks such as `from drift_detection...`) | Phase 4 |
 
 ## 3. Facts verified (use these, not the docx)
@@ -95,3 +99,19 @@ What this means / caveats (do not over-claim):
 Phase 1 exit gate: met (verified config + data audit table; E1-E3 reproduce across 5 seeds with std <= 0.015).
 
 Next: Phase 2 (drift generator): real + virtual drift injectors, S0-S3 schedules as YAML, ground-truth change-point manifest, built on the `src/data` pipeline (so the old `data_pipeline` can be retired), stream visualisations and manifest tests. Also fix A11.
+
+### 2026-10-27 - Phase 1 follow-ups: freeze, natural drift, FedAvg + fine-tuning
+- Tag `phase1-frozen` = commit `a235e34` (code, configs, 5-seed results, audit). Do not change the protocol under that tag; use versioned configs.
+- **Phase 1b** (`experiments/phase1b_natural_drift.py`, `results/phase1/natural_drift.{md,json,png}`): see A15/A16. Paper consequence: do **not** present the temporal split as natural drift evidence; present injected drift with ground truth as the main evidence, and mention mild natural covariate shift only as a secondary check.
+- **Phase 1c** (`experiments/phase1c_fedavg_ft.py`, `results/phase1/fedavg_ft_*.json`): FedAvg part reproduces the frozen E3 numbers **exactly** (reproducibility check passed, both splits, 5 seeds).
+
+| (blocked, 5 seeds) | macro-F1 | worst client | accuracy |
+|---|---|---|---|
+| E1 local-only | 0.883 +- 0.003 | 0.830 | 0.892 |
+| E3 FedAvg | 0.851 +- 0.015 | 0.676 | 0.897 |
+| **E3b FedAvg + local FT** | **0.888 +- 0.009** | 0.814 | 0.910 |
+
+  E3b - E1 = +0.005, 95% CI [-0.002, +0.012]; temporal split: +0.0003. **Personalisation closes the entire FedAvg gap**: any claim of the proposed system must be made against E3b (H1), not E3. The fine-tuning stays local (no extra bytes) but costs ~15 s/run for 8 clients; 20-epoch cap was hit by several clients (minor, revisit if E3b becomes the key baseline).
+- Open question for the author: D13 (edge trimming). Also still open: venue/deadline, E7 method list.
+
+Next: Phase 2 (drift generator), after D13 is decided, since trimming changes the stream the injectors build on.

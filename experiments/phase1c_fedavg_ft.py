@@ -22,8 +22,10 @@ def main():
     ap.add_argument("--split-mode", choices=["blocked", "temporal"], default="blocked")
     ap.add_argument("--finetune-epochs", type=int, default=20)
     ap.add_argument("--seeds", type=int, nargs="*", default=None)
+    ap.add_argument("--config", default=str(ROOT / "configs/phase1_baselines.yaml"))
+    ap.add_argument("--out", default=None)
     args = ap.parse_args()
-    cfg = load_config(ROOT / "configs/phase1_baselines.yaml")
+    cfg = load_config(args.config)
     cfg["data"]["split_mode"] = args.split_mode
     clients, lm, _ = build_federation(DataConfig(**cfg["data"]))
     tc, b = TrainConfig(**cfg["train"]), cfg["budget"]
@@ -38,7 +40,7 @@ def main():
               f"ft epochs {sorted(ft['finetune_best_epoch'].values())}", flush=True)
     save_json({"meta": run_metadata(), "config": cfg, "finetune_epochs": args.finetune_epochs,
                "label_map": lm, "clients": sorted(clients), "runs": runs},
-              ROOT / f"results/phase1/fedavg_ft_{args.split_mode}.json")
+              args.out or ROOT / f"results/phase1/fedavg_ft_{args.split_mode}.json")
 
 
 if __name__ == "__main__":

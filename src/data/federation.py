@@ -38,6 +38,7 @@ class DataConfig:
     block_windows: int = 16            # blocked mode: windows per contiguous block
     split_seed: int = 0                # fixes the block->split assignment (independent of the model seed)
     activities: Sequence[int] = tuple(PROTOCOL_ACTIVITIES)
+    trim_samples: int = 0              # samples cut from BOTH ends of every bout before windowing (D13; 0 = frozen v1 protocol)
 
 
 @dataclass
@@ -115,7 +116,9 @@ def build_federation(cfg: DataConfig, project_root: Optional[Path] = None):
         dropped_short = 0
 
         for bid, b in enumerate(bouts):
-            starts = window_starts(len(b.data), cfg.window, cfg.stride)
+            t = cfg.trim_samples
+            data = b.data[t:len(b.data) - t] if t else b.data
+            starts = window_starts(len(data), cfg.window, cfg.stride)
             if len(starts) < cfg.min_windows_per_bout:
                 dropped_short += 1
                 continue
@@ -124,17 +127,17 @@ def build_federation(cfg: DataConfig, project_root: Optional[Path] = None):
                 st = starts[code == k]
                 if len(st) == 0:
                     continue
-                w = np.stack([b.data[s:s + cfg.window] for s in st])
+                w = np.stack([data[s:s + cfg.window] for s in st])
                 buckets[split]["x"].append(w)
                 buckets[split]["y"].append(np.full(len(st), label_map[b.activity], dtype=np.int64))
                 buckets[split]["p"].append(np.stack(
-                    [np.full(len(st), bid), st, np.full(len(st), b.activity)], axis=1))
+                    [np.full(len(st), bid), st + t, np.full(len(st), b.activity)], axis=1))
                 if split == "train":
                     # union of sample ranges, so overlapping windows are not double counted
-                    mask = np.zeros(len(b.data), dtype=bool)
+                    mask = np.zeros(len(data), dtype=bool)
                     for s0 in st:
                         mask[s0:s0 + cfg.window] = True
-                    train_samples.append(b.data[mask])
+                    train_samples.append(data[mask])
 
         if not train_samples:
             continue

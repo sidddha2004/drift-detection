@@ -155,3 +155,13 @@ def test_acc16_channels_are_really_accelerometers():
         assert 25 < df[c].mean() < 40 and df[c].std() < 3          # temperature
     for c in ACC16_COLS:
         assert df[c].std() > 1.0 and abs(df[c].mean()) < 12         # gravity-scale acceleration
+
+
+def test_trim_removes_edges_only_and_keeps_default_unchanged():
+    base = DataConfig(subjects=(101,), activities=(1, 2, 4))
+    trimmed = DataConfig(subjects=(101,), activities=(1, 2, 4), trim_samples=500)
+    a = build_federation(base)[0][101]
+    b = build_federation(trimmed)[0][101]
+    assert DataConfig().trim_samples == 0
+    assert sum(b.n(s) for s in ("train", "val", "test")) < sum(a.n(s) for s in ("train", "val", "test"))
+    assert min(int(b.prov[s][:, 1].min()) for s in ("train", "val", "test")) >= 500   # provenance stays in raw bout coordinates

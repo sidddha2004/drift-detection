@@ -58,4 +58,9 @@ Reported alongside, never instead: mean over **all** clients, **worst-client** m
 
 ## Amendments
 
-_None yet._
+### Amendment A1 - 2026-10-27 (before any Phase 2+ experiment; before the v2 baseline re-run)
+- **Data protocol v2:** a 5 s (500-sample) trim is cut from both ends of every bout before windowing (`trim_samples: 500`, `configs/phase1_v2_trimmed.yaml`). Rest of the protocol (split, budget, seeds, channels) is unchanged from Section 4.
+- **Justification (fixed before seeing any v2 score):** PAMAP2 activity labels are only approximately aligned with the movement at transitions, so edge windows can contain part of the neighbouring activity; they are outside the steady-state recognition target. The reason is label alignment, not classification difficulty. 5 s is about two window lengths and was not tuned.
+- **Validation evidence (no training, `results/phase1/trim_validation.md`):** no client x class pair lost; 93-95% of windows kept; retained-window covariates unchanged (MMD^2 0.038 v1 vs v2, below the 0.071 sampling reference of the blocked train/test control).
+- **Reporting:** v2 is the primary protocol for all Phase 2+ experiments. The frozen v1 results (tag `phase1-frozen`) are reported as a sensitivity analysis. All methods use the same protocol. If the v1 vs v2 method ranking changes, this is reported.
+

@@ -115,3 +115,16 @@ Next: Phase 2 (drift generator): real + virtual drift injectors, S0-S3 schedules
 - Open question for the author: D13 (edge trimming). Also still open: venue/deadline, E7 method list.
 
 Next: Phase 2 (drift generator), after D13 is decided, since trimming changes the stream the injectors build on.
+
+### 2026-10-27 - Phase 1d: edge-trim protocol (D13) - branch `phase-1d-trim-protocol`
+Step log (in order):
+1. Author's input (pasted advice, adopted): validate the rule first; justification must NOT be "improves macro-F1" but "edge windows are outside the evaluation target"; keep frozen results; versioned config; apply to all methods; check trimming does not remove meaningful drift.
+2. Rule fixed a priori: trim 5 s (500 samples, ~2 windows) from both ends of every bout. Reason = PAMAP2 label alignment at transitions is approximate. Not tuned.
+3. Code: `DataConfig.trim_samples` (default 0 = v1 behaviour unchanged; provenance start samples stay in raw bout coordinates). Test added. `configs/phase1_v2_trimmed.yaml`.
+4. Validation (`experiments/phase1d_trim_validation.py`, `results/phase1/trim_validation.{md,json}`), no training:
+   - 93-95% of windows kept per client; 0 client x class pairs lost.
+   - Edge windows are far more atypical than interior ones (median centroid distance 2.34 vs 0.71, farther in 99% of 84 pairs). Supporting only.
+   - Covariate content of retained windows preserved: MMD^2 v1 vs v2 mean 0.038 (< 0.071 blocked train/test reference); max 0.57 is a small-class outlier.
+   - Coverage floor (train>=20, val>=5, test>=5) is breached by 5 pairs in v2 vs 4 in v1: 105/cls8 train 19, 105/cls11 test 2 (was 10), 107/cls4 train 12 val 3 test 3 (rare, short bouts). Block assignment is random so counts also shift by chance. Caveat to mention in the paper; per-client results for these classes are noisy.
+5. Decision D13: **ADOPT v2 (trim 5 s) as primary protocol**, recorded as Amendment A1 in `docs/analysis_plan.md` before the re-run. v1 stays as a sensitivity analysis.
+6. Next in this phase: re-run E1/E2/E3 (+E3b) under v2 (blocked + temporal, 5 seeds, same budget) -> `results/phase1d/`; compare to v1; confirm ranking; then Phase 2.

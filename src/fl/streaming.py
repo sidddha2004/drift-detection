@@ -93,6 +93,7 @@ class Response:
     align_ridge: float = 0.05       # kind "align": pull of the fitted 3x3 sensor map towards the identity
     lookback: int = 8               # kind "align": the buffer starts this many rounds before the alarm
     replay_unseen: bool = False     # replay only classes ABSENT from the buffer (seen classes: the buffer holds the current truth)
+    prox: float = 0.0               # FedProx-style proximal pull of all weights towards the model at the start of the episode (kind "full")
     replay: float = 1.0             # clean train-pool windows replayed per buffer window (guards against collapsing onto the
                                     # few activities of a recent block; consistent with virtual drift, conflicts with real drift)
 
@@ -114,8 +115,9 @@ class Policy:
     start_model: str = "personal"   # "personal" (E3b) | "global" (E3)
 
 
-def _train(model, x, y, epochs, lr, bs, gen, params=None, anchor=0.0):
+def _train(model, x, y, epochs, lr, bs, gen, params=None, anchor=0.0, prox=0.0):
     params = params if params is not None else [p for p in model.parameters() if p.requires_grad]
+    p0 = [p.detach().clone() for p in params] if prox else None
     opt = torch.optim.Adam(params, lr=lr)
     model.train()
     n = len(y)
@@ -129,6 +131,8 @@ def _train(model, x, y, epochs, lr, bs, gen, params=None, anchor=0.0):
             loss = F.cross_entropy(model(x[idx]), y[idx])
             if anchor and hasattr(model, "in_w"):
                 loss = loss + anchor * ((model.in_w - torch.eye(model.in_w.shape[0], device=DEVICE)) ** 2).sum()
+            if prox:
+                loss = loss + 0.5 * prox * sum(((p - q) ** 2).sum() for p, q in zip(params, p0))
             loss.backward()
             opt.step()
     model.eval()
@@ -321,7 +325,7 @@ def run_stream(clients: Dict[int, ClientData], start_models: Dict[int, torch.nn.
                     ridx = pool[torch.randperm(len(pool), generator=gen)[:k]].to(DEVICE) if len(pool) else pool.to(DEVICE)
                     x, y = torch.cat([x, st.train_x[ridx]]), torch.cat([y, st.train_y[ridx]])
                 if rs.kind == "full":
-                    _train(st.model, x, y, rs.epochs, rs.lr_full, rs.bs, gen)
+                    _train(st.model, x, y, rs.epochs, rs.lr_full, rs.bs, gen, prox=rs.prox)
                 else:
                     _train(st.model, x, y, rs.epochs, rs.lr, rs.bs, gen, anchor=rs.anchor if rs.kind in ("adapter", "input") else 0.0)
                 st.adapted = True

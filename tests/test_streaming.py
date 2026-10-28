@@ -190,3 +190,15 @@ def test_policy_can_use_adwin_as_trigger(world):
     pol = Policy("e4", "detector", Response("f", "full", True, rounds=1, epochs=1), detector=(0.3, 0.0), detector_kind="adwin")
     res = _run(world, pol, _events(drifted=()))
     assert res["f1"].shape == (3, ROUNDS)
+
+
+def test_fedprox_term_keeps_weights_closer_to_the_start(world):
+    from src.fl.streaming import _train
+    clients, models = world
+    x = torch.from_numpy(clients[1].x["train"]).to(DEVICE); y = torch.from_numpy(clients[1].y["train"]).to(DEVICE)
+    dist = {}
+    for mu in (0.0, 50.0):
+        m = copy.deepcopy(models[1]); w0 = [p.detach().clone() for p in m.parameters()]
+        _train(m, x, y, 2, 1e-2, 16, torch.Generator().manual_seed(0), prox=mu)
+        dist[mu] = sum(((p - q) ** 2).sum().item() for p, q in zip(m.parameters(), w0))
+    assert dist[50.0] < dist[0.0]

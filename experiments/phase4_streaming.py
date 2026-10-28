@@ -100,6 +100,9 @@ POLICIES = {
     "ph_mode_oracle": Policy("ph_mode_oracle", "detector", respond_by_type=mode_typed_oracle),
     "adwin_full_fed_E4": Policy("adwin_full_fed_E4", "detector", R_FULL_FED, detector_kind="adwin"),
     "ph_full_fed_E5": Policy("ph_full_fed_E5", "detector", R_FULL_FED),
+    "ph_fedprox_mu001": Policy("ph_fedprox_mu001", "detector", Response("full_fed_prox", "full", federated=True, prox=0.01)),
+    "ph_fedprox_mu1": Policy("ph_fedprox_mu1", "detector", Response("full_fed_prox", "full", federated=True, prox=1.0)),
+    "ph_fedprox_E7a": Policy("ph_fedprox_E7a", "detector", Response("full_fed_prox", "full", federated=True, prox=0.1)),
     "ph_full_local": Policy("ph_full_local", "detector", R_FULL_LOCAL),
     "ph_adapter_local": Policy("ph_adapter_local", "detector", R_AD_LOCAL),
     "ph_adapter_fed": Policy("ph_adapter_fed", "detector", R_AD_FED),
@@ -190,8 +193,10 @@ def main():
     ap.add_argument("--policies", nargs="+", default=list(POLICIES))
     ap.add_argument("--severity", default="med")
     ap.add_argument("--timing", default=None)
+    ap.add_argument("--confirmatory", action="store_true", help="Phase 6: the 10 evaluation seeds (analysis_plan A5)")
     args = ap.parse_args()
-    assert set(args.seeds) <= TUNING_SIDE, "evaluation seeds are reserved for Phase 6"
+    assert args.confirmatory or set(args.seeds) <= TUNING_SIDE, "evaluation seeds are reserved for Phase 6 (--confirmatory)"
+    assert not args.confirmatory or not set(args.seeds) & TUNING_SIDE, "--confirmatory takes evaluation seeds only"
     cfg = load_config(ROOT / "configs/phase1_v2_trimmed.yaml")
     clients, lm, _ = build_federation(DataConfig(**cfg["data"]))
     cids = sorted(clients)

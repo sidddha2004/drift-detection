@@ -238,3 +238,8 @@ Note: a `V2_DONE` marker file appeared when the batches were killed (the script'
 (The wrapper script was stopped by a memory-pressure reaper; v2_A/B/C JSONs were all written regardless. Report: `results/phase4_v2/summary.md`.)
 frozen E3b 0.735 | E3c periodic full-fed 0.737 (18.7 MB uplink) | E4 ADWIN full-fed 0.735 (2.7 MB) | E5 PH full-fed 0.730 (4.8 MB) | ph_align 0.725 | ph_head_long 0.777 | typed_learned (deployable, mode classifier) 0.783 | ph_mode_oracle 0.808 | oracle_align 0.728 | typed_oracle 0.827. All typed/adapter responses cost 0 uplink.
 Reading: deployable typed system +4.8 pts over frozen E3b (v1: ~+0.6); full-model federated retraining (E3c/E4/E5) gives no gain over frozen at 4-25x the bytes; fixed ph_align alone is NOT better than frozen (hurts real drift: 0.42-0.54), the gain comes from choosing alignment for virtual and head retraining for real drift. Not confirmatory (3 tuning seeds); per A4 no further benchmark change before Phase 6.
+
+## 2026-10-28 - Phase 6 start (branch phase-6-confirmatory)
+1. Amendment A5 registered (analysis_plan.md): systems, fixed comparators per hypothesis, E7 = our FedProx-style re-implementation (E7a) + E5 as FedDrift-style analogue (not the official code), E8 = typed_learned, deployable typing is 2-way mode; 4-way is an ablation.
+2. E7a proximal strength tuned on seeds 1001-1003 (S1 rotation + real, post-change F1, mean of the two): mu 0.01 -> 0.666, 0.1 -> 0.671, 1.0 -> 0.695 (E5 0.659, frozen E3b 0.652). mu = 1.0 fixed (best, but at the edge of the registered grid; the grid is not extended). E7a gain over frozen is small.
+3. Not yet run: confirmatory batches on the 10 evaluation seeds (about 5 h, 2 parallel processes) - waiting for the user's go-ahead on launch.

@@ -102,7 +102,7 @@ POLICIES = {
     "ph_full_fed_E5": Policy("ph_full_fed_E5", "detector", R_FULL_FED),
     "ph_fedprox_mu001": Policy("ph_fedprox_mu001", "detector", Response("full_fed_prox", "full", federated=True, prox=0.01)),
     "ph_fedprox_mu1": Policy("ph_fedprox_mu1", "detector", Response("full_fed_prox", "full", federated=True, prox=1.0)),
-    "ph_fedprox_E7a": Policy("ph_fedprox_E7a", "detector", Response("full_fed_prox", "full", federated=True, prox=0.1)),
+    "ph_fedprox_E7a": Policy("ph_fedprox_E7a", "detector", Response("full_fed_prox", "full", federated=True, prox=1.0)),
     "ph_full_local": Policy("ph_full_local", "detector", R_FULL_LOCAL),
     "ph_adapter_local": Policy("ph_adapter_local", "detector", R_AD_LOCAL),
     "ph_adapter_fed": Policy("ph_adapter_fed", "detector", R_AD_FED),

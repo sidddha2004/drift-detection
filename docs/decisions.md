@@ -243,3 +243,13 @@ Reading: deployable typed system +4.8 pts over frozen E3b (v1: ~+0.6); full-mode
 1. Amendment A5 registered (analysis_plan.md): systems, fixed comparators per hypothesis, E7 = our FedProx-style re-implementation (E7a) + E5 as FedDrift-style analogue (not the official code), E8 = typed_learned, deployable typing is 2-way mode; 4-way is an ablation.
 2. E7a proximal strength tuned on seeds 1001-1003 (S1 rotation + real, post-change F1, mean of the two): mu 0.01 -> 0.666, 0.1 -> 0.671, 1.0 -> 0.695 (E5 0.659, frozen E3b 0.652). mu = 1.0 fixed (best, but at the edge of the registered grid; the grid is not extended). E7a gain over frozen is small.
 3. Not yet run: confirmatory batches on the 10 evaluation seeds (about 5 h, 2 parallel processes) - waiting for the user's go-ahead on launch.
+
+## 2026-10-28 - Phase 6 confirmatory results (10 evaluation seeds, benchmark v2; `results/phase6/confirmatory.md`, script `experiments/phase6_stats.py`)
+Run exactly as registered in A5 (S0 streaming not run: runner has no S0 support; false alarms from Phase 3 detector validation). Holm over 12 tests.
+- H1 (E8 vs E3b): S1 +0.079 (Holm p 0.023, significant); S2 +0.080 (CI excludes 0, Holm p 0.078, NOT significant); S3 -0.050 (significantly WORSE).
+- H2 (E8 vs E3c): +0.046 / +0.057 / -0.033; none significant after Holm.
+- H3 (E8 vs E7a FedProx): +0.018 / +0.023 / -0.052; only S3 significant and in E7a's favour. H3 not supported.
+- H5 (E8 vs best fixed ph_head_long): +0.004 / -0.016 / -0.055; typed deployable does NOT beat the best fixed response (S3 significantly worse). H5 not supported for the deployable system.
+- H4: federated adapter vs full retraining non-inferior (CI upper < +0.010) in S1-S3 with 96% uplink reduction (127 vs 3387 kB in S1).
+- Typing ablations: oracle 4-way beats oracle 2-way in S2 +0.045, S3 +0.066, S4 +0.052 (S1 0); deployable E8 loses 2.3-5.3 pts vs E8 with true mode (S1, S2 significant uncorrected).
+- Reading: gains over passive FL hold for sudden/feature drift (S1, S4), not for recurring drift (S3), where the 2-way typed system lacks memory/revert and aligns where it should not; E8's seed variance is high (std 0.05-0.08). The cheap-adaptation claim (H4) holds; the typed-beats-fixed claim (H5) does not.

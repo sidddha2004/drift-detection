@@ -1,0 +1,195 @@
+{
+ "family": [
+  {
+   "h": "H1",
+   "scenario": "S1",
+   "comparator": "frozen_E3b_personal",
+   "diff": 0.07873663245056839,
+   "ci": [
+    0.055085825324962784,
+    0.10484466315743236
+   ],
+   "p": 0.001953125,
+   "p_holm": 0.0234375,
+   "significant": true
+  },
+  {
+   "h": "H1",
+   "scenario": "S2",
+   "comparator": "frozen_E3b_personal",
+   "diff": 0.07964020244483269,
+   "ci": [
+    0.03964386074755337,
+    0.11986910262698842
+   ],
+   "p": 0.009765625,
+   "p_holm": 0.078125,
+   "significant": false
+  },
+  {
+   "h": "H1",
+   "scenario": "S3",
+   "comparator": "frozen_E3b_personal",
+   "diff": -0.04991254769776328,
+   "ci": [
+    -0.07395291990096749,
+    -0.02914390067899377
+   ],
+   "p": 0.001953125,
+   "p_holm": 0.0234375,
+   "significant": true
+  },
+  {
+   "h": "H2",
+   "scenario": "S1",
+   "comparator": "periodic_E3c_full_fed",
+   "diff": 0.045869641787640206,
+   "ci": [
+    0.008475347305984695,
+    0.08523975938879642
+   ],
+   "p": 0.10546875,
+   "p_holm": 0.6328125,
+   "significant": false
+  },
+  {
+   "h": "H2",
+   "scenario": "S2",
+   "comparator": "periodic_E3c_full_fed",
+   "diff": 0.05659055817768196,
+   "ci": [
+    0.0033398005901476633,
+    0.10905664453634266
+   ],
+   "p": 0.083984375,
+   "p_holm": 0.587890625,
+   "significant": false
+  },
+  {
+   "h": "H2",
+   "scenario": "S3",
+   "comparator": "periodic_E3c_full_fed",
+   "diff": -0.03299066870111158,
+   "ci": [
+    -0.06993566726879391,
+    0.0015505420775374814
+   ],
+   "p": 0.193359375,
+   "p_holm": 0.966796875,
+   "significant": false
+  },
+  {
+   "h": "H3",
+   "scenario": "S1",
+   "comparator": "ph_fedprox_E7a",
+   "diff": 0.018227108841919658,
+   "ci": [
+    -0.008382405384124006,
+    0.046764875741088285
+   ],
+   "p": 0.4921875,
+   "p_holm": 1.0,
+   "significant": false
+  },
+  {
+   "h": "H3",
+   "scenario": "S2",
+   "comparator": "ph_fedprox_E7a",
+   "diff": 0.022841940104012137,
+   "ci": [
+    -0.020521328822337523,
+    0.06255526122739641
+   ],
+   "p": 0.431640625,
+   "p_holm": 1.0,
+   "significant": false
+  },
+  {
+   "h": "H3",
+   "scenario": "S3",
+   "comparator": "ph_fedprox_E7a",
+   "diff": -0.05191805746408205,
+   "ci": [
+    -0.08360846452918189,
+    -0.024629036061847714
+   ],
+   "p": 0.00390625,
+   "p_holm": 0.03515625,
+   "significant": true
+  },
+  {
+   "h": "H5",
+   "scenario": "S1",
+   "comparator": "ph_head_long",
+   "diff": 0.003618314974636272,
+   "ci": [
+    -0.019323721660652937,
+    0.02646390245645025
+   ],
+   "p": 0.76953125,
+   "p_holm": 1.0,
+   "significant": false
+  },
+  {
+   "h": "H5",
+   "scenario": "S2",
+   "comparator": "ph_head_long",
+   "diff": -0.01601778395090092,
+   "ci": [
+    -0.0540506993226053,
+    0.018987261556688697
+   ],
+   "p": 0.6953125,
+   "p_holm": 1.0,
+   "significant": false
+  },
+  {
+   "h": "H5",
+   "scenario": "S3",
+   "comparator": "ph_head_long",
+   "diff": -0.05481763264911571,
+   "ci": [
+    -0.08224611611063104,
+    -0.031016262439972533
+   ],
+   "p": 0.001953125,
+   "p_holm": 0.0234375,
+   "significant": true
+  }
+ ],
+ "h4": [
+  {
+   "scenario": "S1",
+   "diff": -0.005268125045829031,
+   "ci": [
+    -0.015095631846859678,
+    0.004956355771844147
+   ],
+   "noninferior": true,
+   "uplink_full": 3387.336,
+   "uplink_adapter": 127.3968
+  },
+  {
+   "scenario": "S2",
+   "diff": -0.00198200726590676,
+   "ci": [
+    -0.012931392532906635,
+    0.007534610369474218
+   ],
+   "noninferior": true,
+   "uplink_full": 3887.98,
+   "uplink_adapter": 141.9452
+  },
+  {
+   "scenario": "S3",
+   "diff": -0.010687835820418923,
+   "ci": [
+    -0.021721494742296257,
+    -0.0004927101401141643
+   ],
+   "noninferior": true,
+   "uplink_full": 2929.3,
+   "uplink_adapter": 111.6688
+  }
+ ]
+}

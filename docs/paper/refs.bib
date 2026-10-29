@@ -1,67 +1,323 @@
-% NOT VERIFIED against publishers' records. Check every entry before submission.
+% refs_verified.bib -- bibliographic details checked 2026-10-30 against
+% Crossref (api.crossref.org), PMLR, MLSys/NeurIPS proceedings, JMLR, arXiv, Semantic Scholar.
+% Keys are kept identical to refs.bib / the citation plan.
+
+% ---------------------------------------------------------------------------
+% Datasets / drift detection / concept-drift background
+% ---------------------------------------------------------------------------
+
+% verified: https://api.crossref.org/works/10.1109/ISWC.2012.13
 @inproceedings{reiss2012pamap2,
-  author = {Reiss, Attila and Stricker, Didier},
-  title = {Introducing a New Benchmarked Dataset for Activity Monitoring},
-  booktitle = {Proc. 16th IEEE International Symposium on Wearable Computers (ISWC)},
-  year = {2012}
+  author    = {Reiss, Attila and Stricker, Didier},
+  title     = {Introducing a New Benchmarked Dataset for Activity Monitoring},
+  booktitle = {Proceedings of the 16th International Symposium on Wearable Computers (ISWC)},
+  publisher = {IEEE},
+  pages     = {108--109},
+  year      = {2012},
+  doi       = {10.1109/ISWC.2012.13}
 }
-@inproceedings{mcmahan2017fedavg,
-  author = {McMahan, H. Brendan and Moore, Eider and Ramage, Daniel and Hampson, Seth and y Arcas, Blaise Ag{\"u}era},
-  title = {Communication-Efficient Learning of Deep Networks from Decentralized Data},
-  booktitle = {Proc. AISTATS},
-  year = {2017}
-}
-@inproceedings{li2020fedprox,
-  author = {Li, Tian and Sahu, Anit Kumar and Zaheer, Manzil and Sanjabi, Maziar and Talwalkar, Ameet and Smith, Virginia},
-  title = {Federated Optimization in Heterogeneous Networks},
-  booktitle = {Proc. Machine Learning and Systems (MLSys)},
-  year = {2020}
-}
-@inproceedings{jothimurugesan2023feddrift,
-  author = {Jothimurugesan, Ellango and Hsieh, Kevin and Wang, Jianyu and Joshi, Gauri and Gibbons, Phillip B.},
-  title = {Federated Learning under Distributed Concept Drift},
-  booktitle = {Proc. AISTATS},
-  year = {2023}
-}
+
+% verified: https://api.crossref.org/works/10.1137/1.9781611972771.42
 @inproceedings{bifet2007adwin,
-  author = {Bifet, Albert and Gavald{\`a}, Ricard},
-  title = {Learning from Time-Changing Data with Adaptive Windowing},
-  booktitle = {Proc. SIAM International Conference on Data Mining},
-  year = {2007}
+  author    = {Bifet, Albert and Gavald{\`a}, Ricard},
+  title     = {Learning from Time-Changing Data with Adaptive Windowing},
+  booktitle = {Proceedings of the 2007 SIAM International Conference on Data Mining (SDM)},
+  publisher = {SIAM},
+  pages     = {443--448},
+  year      = {2007},
+  doi       = {10.1137/1.9781611972771.42}
 }
+
+% verified: https://api.crossref.org/works/10.1093/biomet/41.1-2.100
 @article{page1954,
-  author = {Page, E. S.},
-  title = {Continuous Inspection Schemes},
+  author  = {Page, E. S.},
+  title   = {Continuous Inspection Schemes},
   journal = {Biometrika},
-  volume = {41},
-  year = {1954}
+  volume  = {41},
+  number  = {1--2},
+  pages   = {100--115},
+  year    = {1954},
+  doi     = {10.1093/biomet/41.1-2.100}
 }
-@article{montiel2021river,
-  author = {Montiel, Jacob and others},
-  title = {River: Machine Learning for Streaming Data in Python},
-  journal = {Journal of Machine Learning Research},
-  volume = {22},
-  year = {2021}
-}
+
+% verified: https://api.crossref.org/works/10.1145/2523813
 @article{gama2014survey,
-  author = {Gama, Jo{\~a}o and {\v{Z}}liobait{\.e}, Indr{\.e} and Bifet, Albert and Pechenizkiy, Mykola and Bouchachia, Abdelhamid},
-  title = {A Survey on Concept Drift Adaptation},
+  author  = {Gama, Jo{\~a}o and {\v{Z}}liobait{\.e}, Indr{\.e} and Bifet, Albert and Pechenizkiy, Mykola and Bouchachia, Abdelhamid},
+  title   = {A Survey on Concept Drift Adaptation},
   journal = {ACM Computing Surveys},
-  volume = {46},
-  number = {4},
-  year = {2014}
+  volume  = {46},
+  number  = {4},
+  pages   = {1--37},
+  year    = {2014},
+  doi     = {10.1145/2523813}
 }
+
+% verified: https://api.semanticscholar.org/graph/v1/paper/DOI:10.1109/TKDE.2018.2876857 (Crossref record is stale early-access "2018, pp. 1-1"; final issue: vol 31, no 12, Dec 2019)
 @article{lu2019learning,
-  author = {Lu, Jie and Liu, Anjin and Dong, Fan and Gu, Feng and Gama, Jo{\~a}o and Zhang, Guangquan},
-  title = {Learning under Concept Drift: A Review},
+  author  = {Lu, Jie and Liu, Anjin and Dong, Fan and Gu, Feng and Gama, Jo{\~a}o and Zhang, Guangquan},
+  title   = {Learning under Concept Drift: A Review},
   journal = {IEEE Transactions on Knowledge and Data Engineering},
-  volume = {31},
-  number = {12},
-  year = {2019}
+  volume  = {31},
+  number  = {12},
+  pages   = {2346--2363},
+  year    = {2019},
+  doi     = {10.1109/TKDE.2018.2876857}
 }
+
+% verified: https://jmlr.org/papers/v22/20-1380.html
+@article{montiel2021river,
+  author  = {Montiel, Jacob and Halford, Max and Mastelini, Saulo Martiello and Bolmier, Geoffrey and Sourty, Raphael and Vaysse, Robin and Zouitine, Adil and Gomes, Heitor Murilo and Read, Jesse and Abdessalem, Talel and Bifet, Albert},
+  title   = {River: Machine Learning for Streaming Data in {P}ython},
+  journal = {Journal of Machine Learning Research},
+  volume  = {22},
+  number  = {110},
+  pages   = {1--8},
+  year    = {2021},
+  url     = {http://jmlr.org/papers/v22/20-1380.html}
+}
+
+% verified: https://proceedings.mlr.press/v97/houlsby19a.html
 @inproceedings{houlsby2019adapter,
-  author = {Houlsby, Neil and others},
-  title = {Parameter-Efficient Transfer Learning for {NLP}},
-  booktitle = {Proc. ICML},
-  year = {2019}
+  author    = {Houlsby, Neil and Giurgiu, Andrei and Jastrzebski, Stanislaw and Morrone, Bruna and De Laroussilhe, Quentin and Gesmundo, Andrea and Attariyan, Mona and Gelly, Sylvain},
+  title     = {Parameter-Efficient Transfer Learning for {NLP}},
+  booktitle = {Proceedings of the 36th International Conference on Machine Learning (ICML)},
+  series    = {Proceedings of Machine Learning Research},
+  volume    = {97},
+  pages     = {2790--2799},
+  publisher = {PMLR},
+  year      = {2019},
+  url       = {https://proceedings.mlr.press/v97/houlsby19a.html}
+}
+
+% ---------------------------------------------------------------------------
+% Federated optimisation
+% ---------------------------------------------------------------------------
+
+% verified: https://proceedings.mlr.press/v54/mcmahan17a.html
+@inproceedings{mcmahan2017fedavg,
+  author    = {McMahan, H. Brendan and Moore, Eider and Ramage, Daniel and Hampson, Seth and Ag{\"u}era y Arcas, Blaise},
+  title     = {Communication-Efficient Learning of Deep Networks from Decentralized Data},
+  booktitle = {Proceedings of the 20th International Conference on Artificial Intelligence and Statistics (AISTATS)},
+  series    = {Proceedings of Machine Learning Research},
+  volume    = {54},
+  pages     = {1273--1282},
+  publisher = {PMLR},
+  year      = {2017},
+  url       = {https://proceedings.mlr.press/v54/mcmahan17a.html}
+}
+
+% verified: https://proceedings.mlsys.org/paper_files/paper/2020/hash/1f5fe83998a09396ebe6477d9475ba0c-Abstract.html
+@inproceedings{li2020fedprox,
+  author    = {Li, Tian and Sahu, Anit Kumar and Zaheer, Manzil and Sanjabi, Maziar and Talwalkar, Ameet and Smith, Virginia},
+  title     = {Federated Optimization in Heterogeneous Networks},
+  booktitle = {Proceedings of Machine Learning and Systems (MLSys)},
+  volume    = {2},
+  pages     = {429--450},
+  year      = {2020}
+}
+
+% verified: https://proceedings.neurips.cc/paper/2020/hash/564127c03caab942e503ee6f810f54fd-Abstract.html
+@inproceedings{wang2020fednova,
+  author    = {Wang, Jianyu and Liu, Qinghua and Liang, Hao and Joshi, Gauri and Poor, H. Vincent},
+  title     = {Tackling the Objective Inconsistency Problem in Heterogeneous Federated Optimization},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  volume    = {33},
+  pages     = {7611--7623},
+  publisher = {Curran Associates, Inc.},
+  year      = {2020}
+}
+
+% verified: https://api.crossref.org/works/10.1109/TNNLS.2020.3015958
+@article{sattler2021cfl,
+  author  = {Sattler, Felix and M{\"u}ller, Klaus-Robert and Samek, Wojciech},
+  title   = {Clustered Federated Learning: Model-Agnostic Distributed Multitask Optimization Under Privacy Constraints},
+  journal = {IEEE Transactions on Neural Networks and Learning Systems},
+  volume  = {32},
+  number  = {8},
+  pages   = {3710--3722},
+  year    = {2021},
+  doi     = {10.1109/TNNLS.2020.3015958}
+}
+
+% verified: https://api.crossref.org/works/10.1109/TII.2023.3252599
+@article{mehta2023flacc,
+  author  = {Mehta, Manan and Shao, Chenhui},
+  title   = {A Greedy Agglomerative Framework for Clustered Federated Learning},
+  journal = {IEEE Transactions on Industrial Informatics},
+  volume  = {19},
+  number  = {12},
+  pages   = {11856--11867},
+  year    = {2023},
+  doi     = {10.1109/TII.2023.3252599}
+}
+
+% ---------------------------------------------------------------------------
+% Federated learning under concept drift
+% ---------------------------------------------------------------------------
+
+% verified: https://api.crossref.org/works/10.1109/BigData52589.2021.9671924 (arXiv:2109.00151 confirmed same title/authors)
+@inproceedings{chen2021fedcond,
+  author    = {Chen, Yujing and Chai, Zheng and Cheng, Yue and Rangwala, Huzefa},
+  title     = {Asynchronous Federated Learning for Sensor Data with Concept Drift},
+  booktitle = {Proceedings of the 2021 IEEE International Conference on Big Data (Big Data)},
+  publisher = {IEEE},
+  pages     = {4822--4831},
+  year      = {2021},
+  doi       = {10.1109/BigData52589.2021.9671924}
+}
+
+% verified: https://api.crossref.org/works/10.1007/s11042-021-11219-x
+@article{casado2022cdafedavg,
+  author  = {Casado, Fernando E. and Lema, Dylan and Criado, Marcos F. and Iglesias, Roberto and Regueiro, Carlos V. and Barro, Sen{\'e}n},
+  title   = {Concept Drift Detection and Adaptation for Federated and Continual Learning},
+  journal = {Multimedia Tools and Applications},
+  volume  = {81},
+  number  = {3},
+  pages   = {3397--3419},
+  year    = {2022},
+  doi     = {10.1007/s11042-021-11219-x}
+}
+
+% verified: https://api.crossref.org/works/10.1109/TMC.2021.3136853
+@article{yu2023fedhar,
+  author  = {Yu, Hongzheng and Chen, Zekai and Zhang, Xiao and Chen, Xu and Zhuang, Fuzhen and Xiong, Hui and Cheng, Xiuzhen},
+  title   = {{FedHAR}: Semi-Supervised Online Learning for Personalized Federated Human Activity Recognition},
+  journal = {IEEE Transactions on Mobile Computing},
+  volume  = {22},
+  number  = {6},
+  pages   = {3318--3332},
+  year    = {2023},
+  doi     = {10.1109/TMC.2021.3136853}
+}
+
+% verified: https://proceedings.mlr.press/v206/jothimurugesan23a.html
+@inproceedings{jothimurugesan2023feddrift,
+  author    = {Jothimurugesan, Ellango and Hsieh, Kevin and Wang, Jianyu and Joshi, Gauri and Gibbons, Phillip B.},
+  title     = {Federated Learning under Distributed Concept Drift},
+  booktitle = {Proceedings of the 26th International Conference on Artificial Intelligence and Statistics (AISTATS)},
+  series    = {Proceedings of Machine Learning Research},
+  volume    = {206},
+  pages     = {5834--5853},
+  publisher = {PMLR},
+  year      = {2023},
+  url       = {https://proceedings.mlr.press/v206/jothimurugesan23a.html}
+}
+
+% verified: https://proceedings.mlr.press/v202/panchal23a.html
+@inproceedings{panchal2023flash,
+  author    = {Panchal, Kunjal and Choudhary, Sunav and Mitra, Subrata and Mukherjee, Koyel and Sarkhel, Somdeb and Mitra, Saayan and Guan, Hui},
+  title     = {Flash: Concept Drift Adaptation in Federated Learning},
+  booktitle = {Proceedings of the 40th International Conference on Machine Learning (ICML)},
+  series    = {Proceedings of Machine Learning Research},
+  volume    = {202},
+  pages     = {26931--26962},
+  publisher = {PMLR},
+  year      = {2023},
+  url       = {https://proceedings.mlr.press/v202/panchal23a.html}
+}
+
+% verified: https://api.crossref.org/works/10.1109/TSMC.2023.3293462
+@article{mawuli2023fedstream,
+  author  = {Mawuli, Cobbinah B. and Che, Liwei and Kumar, Jay and Din, Salah Ud and Qin, Zhili and Yang, Qinli and Shao, Junming},
+  title   = {{FedStream}: Prototype-Based Federated Learning on Distributed Concept-Drifting Data Streams},
+  journal = {IEEE Transactions on Systems, Man, and Cybernetics: Systems},
+  volume  = {53},
+  number  = {11},
+  pages   = {7112--7124},
+  year    = {2023},
+  doi     = {10.1109/TSMC.2023.3293462}
+}
+
+% verified: https://api.crossref.org/works/10.1109/OJCOMS.2024.3484228
+@article{aouedi2024fedhar,
+  author  = {Aouedi, Ons and Sacco, Alessio and Khan, Latif U. and Nguyen, Dinh C. and Guizani, Mohsen},
+  title   = {Federated Learning for Human Activity Recognition: Overview, Advances, and Challenges},
+  journal = {IEEE Open Journal of the Communications Society},
+  volume  = {5},
+  pages   = {7341--7367},
+  year    = {2024},
+  doi     = {10.1109/OJCOMS.2024.3484228}
+}
+
+% verified: https://api.crossref.org/works/10.3390/electronics14224480
+@article{mahdi2025fdal,
+  author  = {Mahdi, Osamah A. and Pardede, Eric and Bevinakoppa, Savitri and Ali, Nawfal},
+  title   = {Federated Learning Under Concept Drift: A Systematic Survey of Foundations, Innovations, and Future Research Directions},
+  journal = {Electronics},
+  volume  = {14},
+  number  = {22},
+  pages   = {4480},
+  year    = {2025},
+  doi     = {10.3390/electronics14224480}
+}
+
+% verified: https://api.crossref.org/works/10.1007/s41060-025-00953-2 (published online 2025-12-03; issue vol 21 no 1 dated 2026; article no. 46)
+@article{chen2025virtual,
+  author  = {Chen, Xiaoting and Wang, Shuo and Zhang, Tengsen and Yang, Guanhui and Yang, Yun},
+  title   = {Virtual Concept Drift Detection and Adaptation in Federated Data Stream Learning},
+  journal = {International Journal of Data Science and Analytics},
+  volume  = {21},
+  number  = {1},
+  pages   = {46},
+  year    = {2026},
+  doi     = {10.1007/s41060-025-00953-2}
+}
+
+% Additional 2024-2026 references from the plan document (checked 2026-10-30; titles/authors corrected where the plan was wrong).
+% UNVERIFIED: none. LAND (land2026) abstract not retrieved; cite by title only. DriftGuard (driftguard2026): ADWIN role not confirmed.
+
+% verified: https://api.crossref.org/works/10.1109/TBDATA.2022.3167994 (method named AutoCFL in abstract; early access 2022, issue Dec 2024)
+@article{autocfl2024,
+  author  = {Gong, Biyao and Xing, Tianzhang and Liu, Zhidan and Xi, Wei and Chen, Xiaojiang},
+  title   = {Adaptive Client Clustering for Efficient Federated Learning Over Non-{IID} and Imbalanced Data},
+  journal = {IEEE Transactions on Big Data},
+  volume  = {10},
+  number  = {6},
+  pages   = {1051--1065},
+  year    = {2024},
+  doi     = {10.1109/TBDATA.2022.3167994}
+}
+
+% verified: https://api.crossref.org/works/10.1109/MDM71479.2026.00066 (single author; IEEE doc 11619333)
+@inproceedings{jiang2026cm,
+  author    = {Jiang, Xiaopeng},
+  title     = {Federated Learning Systems for Mobile Data},
+  booktitle = {Proceedings of the 27th IEEE International Conference on Mobile Data Management (MDM)},
+  pages     = {422--424},
+  year      = {2026},
+  doi       = {10.1109/MDM71479.2026.00066}
+}
+
+% verified: https://api.crossref.org/works/10.1109/TMC.2026.3684501 (IEEE doc 11482522)
+@article{wang2026falcon,
+  author  = {Wang, Kailun and Zhang, Ruichen and Liu, Jiqiang and Niyato, Dusit and Cai, Jie and Shang, Jing and Zhang, Tao and Wang, Jian},
+  title   = {{FALCON}: Federated Active Learning-Based Concept Drift Adaptation for Malware Detection},
+  journal = {IEEE Transactions on Mobile Computing},
+  volume  = {25},
+  number  = {10},
+  pages   = {16476--16493},
+  year    = {2026},
+  doi     = {10.1109/TMC.2026.3684501}
+}
+
+% verified: https://api.crossref.org/works/10.1109/TCE.2026.3723788 (IEEE doc 11655892; early access, no volume/pages yet)
+@article{land2026,
+  author  = {Liu, Kexing and Yu, Jiahui and Fu, Rong and Fong, Simon James and Luo, Wei and Lin, Weiwei and Millham, Richard Charles and Dey, Nilanjan and Sciarrone, Andrea},
+  title   = {Distributed Open-Set Human Activity Recognition for {IoMT} via Federated Data Stream Mining with Lightweight Auxiliary Novelty Detection on {Wi-Fi} {CSI} Edge Devices},
+  journal = {IEEE Transactions on Consumer Electronics},
+  year    = {2026},
+  note    = {Early access},
+  doi     = {10.1109/TCE.2026.3723788}
+}
+
+% verified: https://api.crossref.org/works/10.3390/electronics15173995 (framework named DriftGuard in abstract)
+@article{driftguard2026,
+  author  = {Alnaim, Abdulrahman K. and Alwakeel, Ahmed M.},
+  title   = {Federated Continual Learning for Encrypted Traffic Classification at the Network Edge Under Asynchronous Concept Drift},
+  journal = {Electronics},
+  volume  = {15},
+  number  = {17},
+  pages   = {3995},
+  year    = {2026},
+  doi     = {10.3390/electronics15173995}
 }

@@ -1,0 +1,2 @@
+base_t exit 127
+ft_t exit 127

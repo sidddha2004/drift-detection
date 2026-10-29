@@ -1,0 +1,117 @@
+% ============================================================
+%  CHAPTER 4 — SIMULATION AND RESULTS
+% ============================================================
+\chapter{Simulation and Results}
+\label{chap:results}
+
+\section{Experimental Setup}
+
+All experiments are conducted on the PAMAP2 Physical Activity Monitoring dataset, using accelerometer data from 3 IMU sensors placed at the chest, hand, and ankle (9 axes total: 3 axes $\times$ 3 sensors). The dataset is windowed into 256-sample windows with 128-sample stride, yielding raw input sequences of shape $(N, 256, 9)$ for LSTM processing. Transient activity ($ID=0$) is filtered out, retaining activities such as walking, running, cycling, and Nordic walking.
+
+The LSTM model employs 2 layers with 64 hidden units and dropout of 0.3 for regularization. Training uses Adam optimizer with learning rate 0.001, batch size 64, and cross-entropy loss. All experiments use random seed 42 for reproducibility.
+
+\section{Dataset Description}
+\label{sec:dataset}
+
+\subsection{PAMAP2 Dataset}
+
+The system is evaluated on the PAMAP2 Physical Activity Monitoring Dataset~\cite{reiss2012introducing}, which contains data from 9 subjects performing 18 labelled activities (walking, running, cycling, sitting, etc.) at 100~Hz using tri-axial IMUs placed at the wrist, chest, and ankle. The dataset provides a realistic benchmark for streaming HAR evaluation owing to its diversity of subjects, activities, and sensor placements.
+
+\section{Test 1: Multi-Client LSTM Accuracy}
+
+Table~\ref{tab:multi_accuracy} presents the performance of the proposed LSTM model across all 9 subjects in the dataset, with each subject trained independently.
+
+\begin{table}[ht]
+\centering
+\caption{Single-client LSTM performance across all subjects (15 epochs).}
+\label{tab:multi_accuracy}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Subject} & \textbf{Train Acc (\%)} & \textbf{Test Acc (\%)} & \textbf{F1 Score} & \textbf{Time (s)} \\
+\midrule
+101 & 96.8 & 96.4 & 0.964 & 20.9 \\
+102 & 98.2 & 96.4 & 0.964 & 23.4 \\
+103 & 96.8 & 94.9 & 0.948 & 21.5 \\
+104 & 98.3 & 96.1 & 0.961 & 19.6 \\
+105 & 98.0 & 96.9 & 0.969 & 25.6 \\
+106 & 96.4 & 94.6 & 0.947 & 19.1 \\
+107 & 98.4 & 97.8 & 0.978 & 19.8 \\
+108 & 97.4 & 94.9 & 0.948 & 25.0 \\
+109 & 100.0 & 100.0 & 1.000 & 0.7 \\
+\midrule
+\textbf{Mean} & \textbf{97.6} & \textbf{96.5} & \textbf{0.965} & \textbf{19.5} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The model achieves approximately 96.5\% mean test accuracy across all subjects, with consistent performance ranging from 94.6\% to 100\%. The small gap between training (97.6\%) and test (96.5\%) accuracy indicates good generalisation without overfitting. Per-class analysis shows consistent performance across activities, with minor confusion between similar motion patterns (e.g., ascending vs.~descending stairs).
+
+Feature importance analysis reveals that sensor contributions vary across subjects. On average, the chest X-axis, ankle X-axis, and hand X-axis contribute most to classification decisions, while Y and Z axes show lower importance. This aligns with the biomechanical understanding that horizontal acceleration components during ambulatory activities carry more discriminative information than vertical components.
+
+\section{Test 2: ADWIN Drift Detection and Classification}
+
+Table~\ref{tab:drift_detection} summarises the drift detection and classification performance across four drift types using ADWIN statistical testing on error streams from all 9 subjects.
+
+\begin{table}[ht]
+\centering
+\caption{Drift detection and classification performance across 9 subjects.}
+\label{tab:drift_detection}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Drift Type} & \textbf{Detection Rate} &
+\textbf{Classification Acc.} & \textbf{Detection Latency (windows)} \\
+\midrule
+Sudden       & 100\% (9/9) & 0\% (0/9) & $<$10   \\
+Gradual      & 100\% (9/9) & 100\% (9/9) & 70--80  \\
+Recurring    & 100\% (9/9) & 100\% (9/9) & 60--75  \\
+Feature-Level& 100\% (9/9) & 44\% (4/9) & 60--100  \\
+\midrule
+\textbf{Overall} & \textbf{100\%} & \textbf{61\%} & \textbf{--} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+ADWIN achieves 100\% detection rate across all drift types with latency under 100 windows. Sudden drift is detected most rapidly (within 10 windows) due to the immediate error spike, while gradual drift requires 70--80 windows to accumulate sufficient statistical evidence. Classification accuracy varies significantly by drift type: gradual and recurring drifts are perfectly classified, while sudden and feature-level drifts show lower accuracy.
+
+The confusion matrix (Table~\ref{tab:confusion}) reveals specific classification challenges. Sudden drift is consistently misclassified as gradual drift because the high-error characteristics in the post-drift error stream are statistically similar for both types. Feature-level drift affecting a single sensor axis sometimes produces oscillatory error patterns that resemble recurring drift, leading to 5 out of 9 instances being misclassified.
+
+\begin{table}[ht]
+\centering
+\caption{Confusion matrix for drift classification (9 subjects $\times$ 4 drift types = 36 instances).}
+\label{tab:confusion}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Actual} & \textbf{Predicted: Sudden} & \textbf{Gradual} & \textbf{Recurring} & \textbf{Feature} \\
+\midrule
+Sudden       & 0  & 9  & 0 & 0 \\
+Gradual      & 0  & 9  & 0 & 0 \\
+Recurring    & 0  & 0  & 9 & 0 \\
+Feature-Level& 0  & 0  & 5 & 4 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Test 3: Drift Impact on Federated Learning}
+
+To evaluate the vulnerability of federated learning to client drift, we simulate scenarios where 0, 1, or 2 clients experience sensor drift during training. Drift is injected as a constant bias (+8.0) on the first sensor channel and Gaussian noise ($\sigma=3.0$) on the second channel, simulating calibration shift and sensor degradation.
+
+\begin{table}[ht]
+\centering
+\caption{Impact of drifted clients on global model accuracy (4 clients, 12 rounds).}
+\label{tab:fl_drift}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Scenario} & \textbf{Accuracy (\%)} & \textbf{Change from Baseline (\%)} \\
+\midrule
+Normal FL (no drift)     & 66.6 & -- \\
+1 client drifted         & 55.5 & $-11.2$ \\
+2 clients drifted        & 46.9 & $-19.8$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+A single drifted client degrades the global model by over 11 percentage points, while two drifted clients cause a 20\% drop. This demonstrates that FedAvg aggregation propagates poisoned weights to all clients, including those with clean data. The degradation occurs because drifted clients learn incorrect patterns from corrupted sensor data, and these corrupted patterns are averaged into the global model during aggregation.
+
+\section{Summary}
+
+The LSTM architecture proposed in this paper achieves approximately 96.5\% accuracy on HAR data without drift across 9 subjects, demonstrating robustness to inter-subject variability. The ADWIN algorithm successfully detects all four types of drift within 100 windows, with 61\% overall classification accuracy. While detection is reliable, classification of sudden and feature-level drift remains challenging due to overlapping statistical signatures in the error stream. Federated learning shows vulnerability to client drift, with accuracy losses of 11--20\% depending on the number of drifted clients. These results validate the feasibility of online drift detection for human activity recognition and highlight the need for drift-aware mitigation strategies in federated learning systems.

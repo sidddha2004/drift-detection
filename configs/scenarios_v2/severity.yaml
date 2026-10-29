@@ -1,0 +1,7 @@
+# Severity levels (3 per transform). Units: offset = g added to the raw accelerometer axes, gain = multiplicative
+# factor (1 = none), rotation = degrees about the sensor x axis, label_remap = number of classes whose labels are
+# swapped in disjoint pairs. Levels are sanity-checked by the frozen-model error they cause (phase2_severity_check).
+offset:      {low: 0.5,  med: 1.0, high: 2.0}
+gain:        {low: 1.15, med: 1.3, high: 1.6}
+rotation:    {low: 10.0, med: 20.0, high: 30.0}
+label_remap: {low: 2,    med: 4,   high: 6}

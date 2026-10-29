@@ -1,0 +1,12 @@
+# [benchmark v2, Amendment A4] S2: gradual drift. Linear ramp over `ramp` rounds, onsets staggered across clients (asynchronous).
+scenario: S2
+n_rounds: 120
+passes: 2
+start: 30
+timing: async
+jitter: 10
+variants:
+  virtual_offset_partial:   {profile: gradual, mode: virtual, transform: offset,      coverage: 3, ramp: 10}
+  virtual_offset_full:      {profile: gradual, mode: virtual, transform: offset,      coverage: all, ramp: 10}
+  virtual_rotation_partial: {profile: gradual, mode: virtual, transform: rotation,    coverage: 3, ramp: 10}
+  real_partial:             {profile: gradual, mode: real,    transform: label_remap, coverage: 3, ramp: 10}

@@ -1,0 +1,104 @@
+{
+  "meta": {
+    "git_commit": "ac13742+dirty",
+    "timestamp_utc": "2026-10-27T06:09:03+00:00",
+    "python": "3.13.2",
+    "torch": "2.11.0+cu128",
+    "device": "NVIDIA GeForce RTX 5050 Laptop GPU"
+  },
+  "trim_s": 5,
+  "per_client": {
+    "101": {
+      "n_v1": 1856,
+      "n_v2": 1754,
+      "classes_v1": 12,
+      "classes_v2": 12
+    },
+    "102": {
+      "n_v1": 1963,
+      "n_v2": 1854,
+      "classes_v1": 12,
+      "classes_v2": 12
+    },
+    "103": {
+      "n_v1": 1299,
+      "n_v2": 1213,
+      "classes_v1": 8,
+      "classes_v2": 8
+    },
+    "104": {
+      "n_v1": 1723,
+      "n_v2": 1632,
+      "classes_v1": 10,
+      "classes_v2": 10
+    },
+    "105": {
+      "n_v1": 2033,
+      "n_v2": 1929,
+      "classes_v1": 12,
+      "classes_v2": 12
+    },
+    "106": {
+      "n_v1": 1691,
+      "n_v2": 1599,
+      "classes_v1": 10,
+      "classes_v2": 10
+    },
+    "107": {
+      "n_v1": 1740,
+      "n_v2": 1637,
+      "classes_v1": 11,
+      "classes_v2": 11
+    },
+    "108": {
+      "n_v1": 1953,
+      "n_v2": 1844,
+      "classes_v1": 12,
+      "classes_v2": 12
+    }
+  },
+  "lost_pairs": [],
+  "below_floor": [
+    [
+      105,
+      8,
+      "train",
+      19
+    ],
+    [
+      105,
+      11,
+      "test",
+      2
+    ],
+    [
+      107,
+      4,
+      "train",
+      12
+    ],
+    [
+      107,
+      4,
+      "val",
+      3
+    ],
+    [
+      107,
+      4,
+      "test",
+      3
+    ]
+  ],
+  "edge_vs_interior_median_distance": {
+    "edge": 2.335100838825816,
+    "interior": 0.7099072589051156,
+    "frac_pairs_edge_farther": 0.9880952380952381,
+    "n_pairs": 84
+  },
+  "mmd2_v1_vs_v2": {
+    "mean": 0.03838885254193335,
+    "max": 0.5718067172052272,
+    "n_pairs": 86
+  }
+}

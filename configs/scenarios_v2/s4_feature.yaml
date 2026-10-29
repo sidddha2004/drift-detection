@@ -1,0 +1,12 @@
+# [benchmark v2, Amendment A4] S4 (extension of the S0-S3 plan, needed by the 4-way drift-type classifier): feature-level drift = a virtual
+# transform on ONE sensor (channel subset), sudden onset. Channels: 0-2 hand, 3-5 chest, 6-8 ankle.
+scenario: S4
+n_rounds: 120
+passes: 2
+start: 30
+timing: fixed
+jitter: 5
+variants:
+  hand_offset_partial:   {profile: sudden, mode: virtual, transform: offset,   channels: [0, 1, 2], coverage: 3}
+  ankle_gain_partial:    {profile: sudden, mode: virtual, transform: gain,     channels: [6, 7, 8], coverage: 3}
+  chest_rotation_partial: {profile: sudden, mode: virtual, transform: rotation, channels: [3, 4, 5], coverage: 3}

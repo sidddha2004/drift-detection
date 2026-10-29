@@ -1,0 +1,25 @@
+# Phase 1 v2 protocol: identical to phase1_baselines.yaml except trim_samples (D13). Frozen v1 results stay under tag phase1-frozen.
+data:
+  root: PAMAP2_Dataset/Protocol
+  subjects: [101, 102, 103, 104, 105, 106, 107, 108]   # 109 excluded (D9)
+  channels: acc16
+  window: 256
+  stride: 128
+  train_frac: 0.60
+  val_frac: 0.15
+  split_mode: blocked        # blocked = stationary control (S0)
+  trim_samples: 500          # D13: 5 s cut from both ends of every bout (v2 protocol)
+  block_windows: 16
+  split_seed: 0
+train:
+  lr: 0.001
+  weight_decay: 0.0001
+  batch_size: 64
+  dropout: 0.3
+  hidden_size: 64
+  num_layers: 2
+budget:
+  total_epochs: 120       # E1/E2 epochs (locked at 2x the initial budget, see decisions D11)
+  fedavg_local_epochs: 2
+  fedavg_rounds: 60
+seeds: [42, 123, 999, 2024, 7]

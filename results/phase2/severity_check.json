@@ -1,0 +1,106 @@
+{
+  "meta": {
+    "git_commit": "0380203",
+    "timestamp_utc": "2026-10-27T11:00:49+00:00",
+    "python": "3.13.2",
+    "torch": "2.11.0+cu128",
+    "device": "NVIDIA GeForce RTX 5050 Laptop GPU"
+  },
+  "results": {
+    "clean": [
+      0.9400030617439292,
+      0.9059488455308266
+    ],
+    "offset|all sensors|low": [
+      0.9126531624835819,
+      0.8714386977743095
+    ],
+    "offset|all sensors|med": [
+      0.7970334728370727,
+      0.6612873730690035
+    ],
+    "offset|all sensors|high": [
+      0.4622646890826507,
+      0.25861803660003213
+    ],
+    "mono|offset|all sensors": true,
+    "offset|hand only|low": [
+      0.9322308444090037,
+      0.8857032986762645
+    ],
+    "offset|hand only|med": [
+      0.9121776058780948,
+      0.8357041915075398
+    ],
+    "offset|hand only|high": [
+      0.7829627937569938,
+      0.5733168346399727
+    ],
+    "mono|offset|hand only": true,
+    "gain|all sensors|low": [
+      0.91074453173213,
+      0.8804444510986644
+    ],
+    "gain|all sensors|med": [
+      0.8129489690685403,
+      0.7512945384624055
+    ],
+    "gain|all sensors|high": [
+      0.6556793507942456,
+      0.5164043081837392
+    ],
+    "mono|gain|all sensors": true,
+    "gain|ankle only|low": [
+      0.9234239716802262,
+      0.8849040459064046
+    ],
+    "gain|ankle only|med": [
+      0.825096586429344,
+      0.6911330252874984
+    ],
+    "gain|ankle only|high": [
+      0.6116130854558306,
+      0.4699571207354158
+    ],
+    "mono|gain|ankle only": true,
+    "rotation|all sensors|low": [
+      0.8804216925539501,
+      0.8328962365766026
+    ],
+    "rotation|all sensors|med": [
+      0.6780267978086261,
+      0.5482623991052282
+    ],
+    "rotation|all sensors|high": [
+      0.4211098628944987,
+      0.3173449274786
+    ],
+    "mono|rotation|all sensors": true,
+    "rotation|chest only|low": [
+      0.8920384276266555,
+      0.8034810704096458
+    ],
+    "rotation|chest only|med": [
+      0.7456182358409548,
+      0.6388296372033383
+    ],
+    "rotation|chest only|high": [
+      0.5634867746114656,
+      0.4244590611903358
+    ],
+    "mono|rotation|chest only": true,
+    "label_remap|real drift|low": [
+      0.7610074287930346,
+      0.6654266018170936
+    ],
+    "label_remap|real drift|med": [
+      0.5844062463032087,
+      0.43335562675625516
+    ],
+    "label_remap|real drift|high": [
+      0.4202823782978794,
+      0.28686679866687986
+    ],
+    "mono|label_remap|real drift": true
+  }
+}

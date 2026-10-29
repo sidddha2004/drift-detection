@@ -1,0 +1,92 @@
+{
+  "meta": {
+    "git_commit": "5b817cf",
+    "timestamp_utc": "2026-10-26T14:33:16+00:00",
+    "python": "3.13.2",
+    "torch": "2.11.0+cu128",
+    "device": "NVIDIA GeForce RTX 5050 Laptop GPU"
+  },
+  "rows": [
+    {
+      "channels": "acc16",
+      "seed": 42,
+      "mean_macro_f1": 0.8776469748660002,
+      "worst_macro_f1": 0.813307948804423,
+      "std_macro_f1": 0.03226386438006918,
+      "mean_accuracy": 0.885915080932494,
+      "worst_accuracy": 0.8241758241758241
+    },
+    {
+      "channels": "acc16",
+      "seed": 123,
+      "mean_macro_f1": 0.8729003428914095,
+      "worst_macro_f1": 0.8002945526849142,
+      "std_macro_f1": 0.041366784828803634,
+      "mean_accuracy": 0.8851774684443288,
+      "worst_accuracy": 0.8202020202020202
+    },
+    {
+      "channels": "acc16",
+      "seed": 999,
+      "mean_macro_f1": 0.8700064750075804,
+      "worst_macro_f1": 0.8128101639607644,
+      "std_macro_f1": 0.03042574548295721,
+      "mean_accuracy": 0.8836272727823129,
+      "worst_accuracy": 0.8222222222222222
+    },
+    {
+      "channels": "legacy",
+      "seed": 42,
+      "mean_macro_f1": 0.8986217227158819,
+      "worst_macro_f1": 0.780366411478646,
+      "std_macro_f1": 0.05872266617392476,
+      "mean_accuracy": 0.9059968149356614,
+      "worst_accuracy": 0.7761904761904762
+    },
+    {
+      "channels": "legacy",
+      "seed": 123,
+      "mean_macro_f1": 0.9230858479133599,
+      "worst_macro_f1": 0.8574573793240162,
+      "std_macro_f1": 0.03444462104569467,
+      "mean_accuracy": 0.938178129871716,
+      "worst_accuracy": 0.8904761904761904
+    },
+    {
+      "channels": "legacy",
+      "seed": 999,
+      "mean_macro_f1": 0.9182029062866637,
+      "worst_macro_f1": 0.8696799547309205,
+      "std_macro_f1": 0.02861972030200695,
+      "mean_accuracy": 0.9361665934806298,
+      "worst_accuracy": 0.8828282828282829
+    },
+    {
+      "channels": "temp",
+      "seed": 42,
+      "mean_macro_f1": 0.8532960067364133,
+      "worst_macro_f1": 0.7521253019983355,
+      "std_macro_f1": 0.06304153326954653,
+      "mean_accuracy": 0.8952564977434694,
+      "worst_accuracy": 0.830952380952381
+    },
+    {
+      "channels": "temp",
+      "seed": 123,
+      "mean_macro_f1": 0.817025008598536,
+      "worst_macro_f1": 0.665713533611297,
+      "std_macro_f1": 0.08754805751722973,
+      "mean_accuracy": 0.8771185972786175,
+      "worst_accuracy": 0.7067833698030634
+    },
+    {
+      "channels": "temp",
+      "seed": 999,
+      "mean_macro_f1": 0.8364158370391617,
+      "worst_macro_f1": 0.7594322573452167,
+      "std_macro_f1": 0.06054448594680207,
+      "mean_accuracy": 0.8842408560838864,
+      "worst_accuracy": 0.7811816192560175
+    }
+  ]
+}

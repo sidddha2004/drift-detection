@@ -1,0 +1,119 @@
+{
+  "audit": {
+    "101": {
+      "rows": 376417,
+      "transient_rows": 126460,
+      "n_gaps": 0,
+      "dropped_nan": 0,
+      "dropped_activity": 0,
+      "n_bouts": 14,
+      "dropped_short_bouts": 0,
+      "n_train": 1153,
+      "n_val": 282,
+      "n_test": 469
+    },
+    "102": {
+      "rows": 447000,
+      "transient_rows": 183651,
+      "n_gaps": 0,
+      "dropped_nan": 0,
+      "dropped_activity": 0,
+      "n_bouts": 14,
+      "dropped_short_bouts": 0,
+      "n_train": 1216,
+      "n_val": 298,
+      "n_test": 495
+    },
+    "103": {
+      "rows": 252833,
+      "transient_rows": 78495,
+      "n_gaps": 0,
+      "dropped_nan": 0,
+      "dropped_activity": 0,
+      "n_bouts": 11,
+      "dropped_short_bouts": 0,
+      "n_train": 804,
+      "n_val": 196,
+      "n_test": 324
+    },
+    "104": {
+      "rows": 329576,
+      "transient_rows": 98155,
+      "n_gaps": 0,
+      "dropped_nan": 0,
+      "dropped_activity": 0,
+      "n_bouts": 13,
+      "dropped_short_bouts": 1,
+      "n_train": 1070,
+      "n_val": 263,
+      "n_test": 435
+    },
+    "105": {
+      "rows": 374783,
+      "transient_rows": 102341,
+      "n_gaps": 0,
+      "dropped_nan": 0,
+      "dropped_activity": 0,
+      "n_bouts": 14,
+      "dropped_short_bouts": 0,
+      "n_train": 1257,
+      "n_val": 308,
+      "n_test": 514
+    },
+    "106": {
+      "rows": 361817,
+      "transient_rows": 111721,
+      "n_gaps": 0,
+      "dropped_nan": 23041,
+      "dropped_activity": 0,
+      "n_bouts": 13,
+      "dropped_short_bouts": 1,
+      "n_train": 1047,
+      "n_val": 258,
+      "n_test": 425
+    },
+    "107": {
+      "rows": 313599,
+      "transient_rows": 80823,
+      "n_gaps": 0,
+      "dropped_nan": 0,
+      "dropped_activity": 0,
+      "n_bouts": 13,
+      "dropped_short_bouts": 0,
+      "n_train": 1076,
+      "n_val": 266,
+      "n_test": 432
+    },
+    "108": {
+      "rows": 408031,
+      "transient_rows": 145929,
+      "n_gaps": 0,
+      "dropped_nan": 0,
+      "dropped_activity": 0,
+      "n_bouts": 14,
+      "dropped_short_bouts": 0,
+      "n_train": 1210,
+      "n_val": 298,
+      "n_test": 491
+    }
+  },
+  "totals": {
+    "train": 8833,
+    "val": 2169,
+    "test": 3585
+  },
+  "class_train_counts": [
+    893,
+    749,
+    880,
+    1109,
+    453,
+    763,
+    873,
+    531,
+    468,
+    811,
+    1108,
+    195
+  ]
+}

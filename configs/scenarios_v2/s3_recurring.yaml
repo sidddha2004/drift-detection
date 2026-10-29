@@ -1,0 +1,12 @@
+# [benchmark v2, Amendment A4] S3: recurring drift (A -> B -> A -> B): the drifted regime is active `duration` rounds out of every `period`.
+# Tests forgetting and concept reuse.
+scenario: S3
+n_rounds: 120
+passes: 2
+start: 30
+timing: fixed
+jitter: 5
+variants:
+  virtual_offset_partial:   {profile: recurring, mode: virtual, transform: offset,      coverage: 3, period: 30, duration: 15}
+  virtual_rotation_partial: {profile: recurring, mode: virtual, transform: rotation,    coverage: 3, period: 30, duration: 15}
+  real_partial:             {profile: recurring, mode: real,    transform: label_remap, coverage: 3, period: 30, duration: 15}

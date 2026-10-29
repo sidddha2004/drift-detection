@@ -1,0 +1,2520 @@
+{
+ "meta": {
+  "git_commit": "0380203",
+  "timestamp_utc": "2026-10-27T10:55:49+00:00",
+  "python": "3.13.2",
+  "torch": "2.11.0+cu128",
+  "device": "NVIDIA GeForce RTX 5050 Laptop GPU"
+ },
+ "manifests": [
+  {
+   "scenario": "S0",
+   "variant": null,
+   "severity": "med",
+   "seed": 42,
+   "timing": null,
+   "n_rounds": 60,
+   "clients": [
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108
+   ],
+   "events": [],
+   "drifted_clients": []
+  },
+  {
+   "scenario": "S1",
+   "variant": "virtual_offset_partial",
+   "severity": "med",
+   "seed": 42,
+   "timing": "fixed",
+   "n_rounds": 60,
+   "clients": [
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108
+   ],
+   "events": [
+    {
+     "client": 101,
+     "event_id": 0,
+     "profile": "sudden",
+     "mode": "virtual",
+     "transform": "offset",
+     "channels": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+     ],
+     "magnitude": 1.0,
+     "start": 20,
+     "ramp": 0,
+     "period": 0,
+     "duration": 0,
+     "remap": [],
+     "type4": "sudden",
+     "change_points": [
+      {
+       "round": 20,
+       "kind": "onset"
+      }
+     ]
+    },
+    {
+     "client": 103,
+     "event_id": 0,
+     "profile": "sudden",
+     "mode": "virtual",
+     "transform": "offset",
+     "channels": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+     ],
+     "magnitude": 1.0,
+     "start": 20,
+     "ramp": 0,
+     "period": 0,
+     "duration": 0,
+     "remap": [],
+     "type4": "sudden",
+     "change_points": [
+      {
+       "round": 20,
+       "kind": "onset"
+      }
+     ]
+    },
+    {
+     "client": 107,
+     "event_id": 0,
+     "profile": "sudden",
+     "mode": "virtual",
+     "transform": "offset",
+     "channels": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+     ],
+     "magnitude": 1.0,
+     "start": 20,
+     "ramp": 0,
+     "period": 0,
+     "duration": 0,
+     "remap": [],
+     "type4": "sudden",
+     "change_points": [
+      {
+       "round": 20,
+       "kind": "onset"
+      }
+     ]
+    }
+   ],
+   "drifted_clients": [
+    101,
+    103,
+    107
+   ],
+   "jitter": 5
+  },
+  {
+   "scenario": "S1",
+   "variant": "virtual_offset_full",
+   "severity": "med",
+   "seed": 42,
+   "timing": "fixed",
+   "n_rounds": 60,
+   "clients": [
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108
+   ],
+   "events": [
+    {
+     "client": 101,
+     "event_id": 0,
+     "profile": "sudden",
+     "mode": "virtual",
+     "transform": "offset",
+     "channels": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+     ],
+     "magnitude": 1.0,
+     "start": 20,
+     "ramp": 0,
+     "period": 0,
+     "duration": 0,
+     "remap": [],
+     "type4": "sudden",
+     "change_points": [
+      {
+       "round": 20,
+       "kind": "onset"
+      }
+     ]
+    },
+    {
+     "client": 102,
+     "event_id": 0,
+     "profile": "sudden",
+     "mode": "virtual",
+     "transform": "offset",
+     "channels": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+     ],
+     "magnitude": 1.0,
+     "start": 20,
+     "ramp": 0,
+     "period": 0,
+     "duration": 0,
+     "remap": [],
+     "type4": "sudden",
+     "change_points": [
+      {
+       "round": 20,
+       "kind": "onset"
+      }
+     ]
+    },
+    {
+     "client": 103,
+     "event_id": 0,
+     "profile": "sudden",
+     "mode": "virtual",
+     "transform": "offset",
+     "channels": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+     ],
+     "magnitude": 1.0,
+     "start": 20,
+     "ramp": 0,
+     "period": 0,
+     "duration": 0,
+     "remap": [],
+     "type4": "sudden",
+     "change_points": [
+      {
+       "round": 20,
+       "kind": "onset"
+      }
+     ]
+    },
+    {
+     "client": 104,
+     "event_id": 0,
+     "profile": "sudden",
+     "mode": "virtual",
+     "transform": "offset",
+     "channels": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+     ],
+     "magnitude": 1.0,
+     "start": 20,
+     "ramp": 0,
+     "period": 0,
+     "duration": 0,
+     "remap": [],
+     "type4": "sudden",
+     "change_points": [
+      {
+       "round": 20,
+       "kind": "onset"
+      }
+     ]
+    },
+    {
+     "client": 105,
+     "event_id": 0,
+     "profile": "sudden",
+     "mode": "virtual",
+     "transform": "offset",
+     "channels": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+     ],
+     "magnitude": 1.0,
+     "start": 20,
+     "ramp": 0,
+     "period": 0,
+     "duration": 0,
+     "remap": [],
+     "type4": "sudden",
+     "change_points": [
+      {
+       "round": 20,
+       "kind": "onset"
+      }
+     ]
+    },
+    {
+     "client": 106,
+     "event_id": 0,
+     "profile": "sudden",
+     "mode": "virtual",
+     "transform": "offset",
+     "channels": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+     ],
+     "magnitude": 1.0,
+     "start": 20,
+     "ramp": 0,
+     "period": 0,
+     "duration": 0,
+     "remap": [],
+     "type4": "sudden",
+     "change_points": [
+      {
+       "round": 20,
+       "kind": "onset"
+      }
+     ]
+    },
+    {
+     "client": 107,
+     "event_id": 0,
+     "profile": "sudden",
+     "mode": "virtual",
+     "transform": "offset",
+     "channels": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+     ],
+     "magnitude": 1.0,
+     "start": 20,
+     "ramp": 0,
+     "period": 0,
+     "duration": 0,
+     "remap": [],
+     "type4": "sudden",
+     "change_points": [
+      {
+       "round": 20,
+       "kind": "onset"
+      }
+     ]
+    },
+    {
+     "client": 108,
+     "event_id": 0,
+     "profile": "sudden",
+     "mode": "virtual",
+     "transform": "offset",
+     "channels": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+     ],
+     "magnitude": 1.0,
+     "start": 20,
+     "ramp": 0,
+     "period": 0,
+     "duration": 0,
+     "remap": [],
+     "type4": "sudden",
+     "change_points": [
+      {
+       "round": 20,
+       "kind": "onset"
+      }
+     ]
+    }
+   ],
+   "drifted_clients": [
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108
+   ],
+   "jitter": 5
+  },
+  {
+   "scenario": "S1",
+   "variant": "virtual_gain_partial",
+   "severity": "med",
+   "seed": 42,
+   "timing": "fixed",
+   "n_rounds": 60,
+   "clients": [
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108
+   ],
+   "events": [
+    {
+     "client": 101,
+     "event_id": 0,
+     "profile": "sudden",
+     "mode": "virtual",
+     "transform": "gain",
+     "channels": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+     ],
+     "magnitude": 1.3,
+     "start": 20,
+     "ramp": 0,
+     "period": 0,
+     "duration": 0,
+     "remap": [],
+     "type4": "sudden",
+     "change_points": [
+      {
+       "round": 20,
+       "kind": "onset"
+      }
+     ]
+    },
+    {
+     "client": 103,
+     "event_id": 0,
+     "profile": "sudden",
+     "mode": "virtual",
+     "transform": "gain",
+     "channels": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+     ],
+     "magnitude": 1.3,
+     "start": 20,
+     "ramp": 0,
+     "period": 0,
+     "duration": 0,
+     "remap": [],
+     "type4": "sudden",
+     "change_points": [
+      {
+       "round": 20,
+       "kind": "onset"
+      }
+     ]
+    },
+    {
+     "client": 107,
+     "event_id": 0,
+     "profile": "sudden",
+     "mode": "virtual",
+     "transform": "gain",
+     "channels": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+     ],
+     "magnitude": 1.3,
+     "start": 20,
+     "ramp": 0,
+     "period": 0,
+     "duration": 0,
+     "remap": [],
+     "type4": "sudden",
+     "change_points": [
+      {
+       "round": 20,
+       "kind": "onset"
+      }
+     ]
+    }
+   ],
+   "drifted_clients": [
+    101,
+    103,
+    107
+   ],
+   "jitter": 5
+  },
+  {
+   "scenario": "S1",
+   "variant": "virtual_rotation_partial",
+   "severity": "med",
+   "seed": 42,
+   "timing": "fixed",
+   "n_rounds": 60,
+   "clients": [
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108
+   ],
+   "events": [
+    {
+     "client": 101,
+     "event_id": 0,
+     "profile": "sudden",
+     "mode": "virtual",
+     "transform": "rotation",
+     "channels": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+     ],
+     "magnitude": 30.0,
+     "start": 20,
+     "ramp": 0,
+     "period": 0,
+     "duration": 0,
+     "remap": [],
+     "type4": "sudden",
+     "change_points": [
+      {
+       "round": 20,
+       "kind": "onset"
+      }
+     ]
+    },
+    {
+     "client": 103,
+     "event_id": 0,
+     "profile": "sudden",
+     "mode": "virtual",
+     "transform": "rotation",
+     "channels": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+     ],
+     "magnitude": 30.0,
+     "start": 20,
+     "ramp": 0,
+     "period": 0,
+     "duration": 0,
+     "remap": [],
+     "type4": "sudden",
+     "change_points": [
+      {
+       "round": 20,
+       "kind": "onset"
+      }
+     ]
+    },
+    {
+     "client": 107,
+     "event_id": 0,
+     "profile": "sudden",
+     "mode": "virtual",
+     "transform": "rotation",
+     "channels": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+     ],
+     "magnitude": 30.0,
+     "start": 20,
+     "ramp": 0,
+     "period": 0,
+     "duration": 0,
+     "remap": [],
+     "type4": "sudden",
+     "change_points": [
+      {
+       "round": 20,
+       "kind": "onset"
+      }
+     ]
+    }
+   ],
+   "drifted_clients": [
+    101,
+    103,
+    107
+   ],
+   "jitter": 5
+  },
+  {
+   "scenario": "S1",
+   "variant": "real_partial",
+   "severity": "med",
+   "seed": 42,
+   "timing": "fixed",
+   "n_rounds": 60,
+   "clients": [
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108
+   ],
+   "events": [
+    {
+     "client": 101,
+     "event_id": 0,
+     "profile": "sudden",
+     "mode": "real",
+     "transform": "label_remap",
+     "channels": [],
+     "magnitude": 4.0,
+     "start": 20,
+     "ramp": 0,
+     "period": 0,
+     "duration": 0,
+     "remap": [
+      [
+       11,
+       6
+      ],
+      [
+       1,
+       2
+      ]
+     ],
+     "type4": "sudden",
+     "change_points": [
+      {
+       "round": 20,
+       "kind": "onset"
+      }
+     ]
+    },
+    {
+     "client": 103,
+     "event_id": 0,
+     "profile": "sudden",
+     "mode": "real",
+     "transform": "label_remap",
+     "channels": [],
+     "magnitude": 4.0,
+     "start": 20,
+     "ramp": 0,
+     "period": 0,
+     "duration": 0,
+     "remap": [
+      [
+       9,
+       2
+      ],
+      [
+       0,
+       3
+      ]
+     ],
+     "type4": "sudden",
+     "change_points": [
+      {
+       "round": 20,
+       "kind": "onset"
+      }
+     ]
+    },
+    {
+     "client": 107,
+     "event_id": 0,
+     "profile": "sudden",
+     "mode": "real",
+     "transform": "label_remap",
+     "channels": [],
+     "magnitude": 4.0,
+     "start": 20,
+     "ramp": 0,
+     "period": 0,
+     "duration": 0,
+     "remap": [
+      [
+       9,
+       5
+      ],
+      [
+       10,
+       7
+      ]
+     ],
+     "type4": "sudden",
+     "change_points": [
+      {
+       "round": 20,
+       "kind": "onset"
+      }
+     ]
+    }
+   ],
+   "drifted_clients": [
+    101,
+    103,
+    107
+   ],
+   "jitter": 5
+  },
+  {
+   "scenario": "S1",
+   "variant": "real_full",
+   "severity": "med",
+   "seed": 42,
+   "timing": "fixed",
+   "n_rounds": 60,
+   "clients": [
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108
+   ],
+   "events": [
+    {
+     "client": 101,
+     "event_id": 0,
+     "profile": "sudden",
+     "mode": "real",
+     "transform": "label_remap",
+     "channels": [],
+     "magnitude": 4.0,
+     "start": 20,
+     "ramp": 0,
+     "period": 0,
+     "duration": 0,
+     "remap": [
+      [
+       11,
+       6
+      ],
+      [
+       1,
+       2
+      ]
+     ],
+     "type4": "sudden",
+     "change_points": [
+      {
+       "round": 20,
+       "kind": "onset"
+      }
+     ]
+    },
+    {
+     "client": 102,
+     "event_id": 0,
+     "profile": "sudden",
+     "mode": "real",
+     "transform": "label_remap",
+     "channels": [],
+     "magnitude": 4.0,
+     "start": 20,
+     "ramp": 0,
+     "period": 0,
+     "duration": 0,
+     "remap": [
+      [
+       10,
+       2
+      ],
+      [
+       7,
+       1
+      ]
+     ],
+     "type4": "sudden",
+     "change_points": [
+      {
+       "round": 20,
+       "kind": "onset"
+      }
+     ]
+    },
+    {
+     "client": 103,
+     "event_id": 0,
+     "profile": "sudden",
+     "mode": "real",
+     "transform": "label_remap",
+     "channels": [],
+     "magnitude": 4.0,
+     "start": 20,
+     "ramp": 0,
+     "period": 0,
+     "duration": 0,
+     "remap": [
+      [
+       9,
+       2
+      ],
+      [
+       0,
+       3
+      ]
+     ],
+     "type4": "sudden",
+     "change_points": [
+      {
+       "round": 20,
+       "kind": "onset"
+      }
+     ]
+    },
+    {
+     "client": 104,
+     "event_id": 0,
+     "profile": "sudden",
+     "mode": "real",
+     "transform": "label_remap",
+     "channels": [],
+     "magnitude": 4.0,
+     "start": 20,
+     "ramp": 0,
+     "period": 0,
+     "duration": 0,
+     "remap": [
+      [
+       10,
+       9
+      ],
+      [
+       2,
+       8
+      ]
+     ],
+     "type4": "sudden",
+     "change_points": [
+      {
+       "round": 20,
+       "kind": "onset"
+      }
+     ]
+    },
+    {
+     "client": 105,
+     "event_id": 0,
+     "profile": "sudden",
+     "mode": "real",
+     "transform": "label_remap",
+     "channels": [],
+     "magnitude": 4.0,
+     "start": 20,
+     "ramp": 0,
+     "period": 0,
+     "duration": 0,
+     "remap": [
+      [
+       2,
+       9
+      ],
+      [
+       1,
+       11
+      ]
+     ],
+     "type4": "sudden",
+     "change_points": [
+      {
+       "round": 20,
+       "kind": "onset"
+      }
+     ]
+    },
+    {
+     "client": 106,
+     "event_id": 0,
+     "profile": "sudden",
+     "mode": "real",
+     "transform": "label_remap",
+     "channels": [],
+     "magnitude": 4.0,
+     "start": 20,
+     "ramp": 0,
+     "period": 0,
+     "duration": 0,
+     "remap": [
+      [
+       0,
+       9
+      ],
+      [
+       5,
+       10
+      ]
+     ],
+     "type4": "sudden",
+     "change_points": [
+      {
+       "round": 20,
+       "kind": "onset"
+      }
+     ]
+    },
+    {
+     "client": 107,
+     "event_id": 0,
+     "profile": "sudden",
+     "mode": "real",
+     "transform": "label_remap",
+     "channels": [],
+     "magnitude": 4.0,
+     "start": 20,
+     "ramp": 0,
+     "period": 0,
+     "duration": 0,
+     "remap": [
+      [
+       9,
+       5
+      ],
+      [
+       10,
+       7
+      ]
+     ],
+     "type4": "sudden",
+     "change_points": [
+      {
+       "round": 20,
+       "kind": "onset"
+      }
+     ]
+    },
+    {
+     "client": 108,
+     "event_id": 0,
+     "profile": "sudden",
+     "mode": "real",
+     "transform": "label_remap",
+     "channels": [],
+     "magnitude": 4.0,
+     "start": 20,
+     "ramp": 0,
+     "period": 0,
+     "duration": 0,
+     "remap": [
+      [
+       1,
+       5
+      ],
+      [
+       8,
+       11
+      ]
+     ],
+     "type4": "sudden",
+     "change_points": [
+      {
+       "round": 20,
+       "kind": "onset"
+      }
+     ]
+    }
+   ],
+   "drifted_clients": [
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108
+   ],
+   "jitter": 5
+  },
+  {
+   "scenario": "S2",
+   "variant": "virtual_offset_partial",
+   "severity": "med",
+   "seed": 42,
+   "timing": "async",
+   "n_rounds": 60,
+   "clients": [
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108
+   ],
+   "events": [
+    {
+     "client": 101,
+     "event_id": 0,
+     "profile": "gradual",
+     "mode": "virtual",
+     "transform": "offset",
+     "channels": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+     ],
+     "magnitude": 1.0,
+     "start": 22,
+     "ramp": 10,
+     "period": 0,
+     "duration": 0,
+     "remap": [],
+     "type4": "gradual",
+     "change_points": [
+      {
+       "round": 22,
+       "kind": "onset"
+      },
+      {
+       "round": 31,
+       "kind": "full"
+      }
+     ]
+    },
+    {
+     "client": 103,
+     "event_id": 0,
+     "profile": "gradual",
+     "mode": "virtual",
+     "transform": "offset",
+     "channels": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+     ],
+     "magnitude": 1.0,
+     "start": 26,
+     "ramp": 10,
+     "period": 0,
+     "duration": 0,
+     "remap": [],
+     "type4": "gradual",
+     "change_points": [
+      {
+       "round": 26,
+       "kind": "onset"
+      },
+      {
+       "round": 35,
+       "kind": "full"
+      }
+     ]
+    },
+    {
+     "client": 107,
+     "event_id": 0,
+     "profile": "gradual",
+     "mode": "virtual",
+     "transform": "offset",
+     "channels": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+     ],
+     "magnitude": 1.0,
+     "start": 29,
+     "ramp": 10,
+     "period": 0,
+     "duration": 0,
+     "remap": [],
+     "type4": "gradual",
+     "change_points": [
+      {
+       "round": 29,
+       "kind": "onset"
+      },
+      {
+       "round": 38,
+       "kind": "full"
+      }
+     ]
+    }
+   ],
+   "drifted_clients": [
+    101,
+    103,
+    107
+   ],
+   "jitter": 10
+  },
+  {
+   "scenario": "S2",
+   "variant": "virtual_offset_full",
+   "severity": "med",
+   "seed": 42,
+   "timing": "async",
+   "n_rounds": 60,
+   "clients": [
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108
+   ],
+   "events": [
+    {
+     "client": 101,
+     "event_id": 0,
+     "profile": "gradual",
+     "mode": "virtual",
+     "transform": "offset",
+     "channels": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+     ],
+     "magnitude": 1.0,
+     "start": 22,
+     "ramp": 10,
+     "period": 0,
+     "duration": 0,
+     "remap": [],
+     "type4": "gradual",
+     "change_points": [
+      {
+       "round": 22,
+       "kind": "onset"
+      },
+      {
+       "round": 31,
+       "kind": "full"
+      }
+     ]
+    },
+    {
+     "client": 102,
+     "event_id": 0,
+     "profile": "gradual",
+     "mode": "virtual",
+     "transform": "offset",
+     "channels": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+     ],
+     "magnitude": 1.0,
+     "start": 23,
+     "ramp": 10,
+     "period": 0,
+     "duration": 0,
+     "remap": [],
+     "type4": "gradual",
+     "change_points": [
+      {
+       "round": 23,
+       "kind": "onset"
+      },
+      {
+       "round": 32,
+       "kind": "full"
+      }
+     ]
+    },
+    {
+     "client": 103,
+     "event_id": 0,
+     "profile": "gradual",
+     "mode": "virtual",
+     "transform": "offset",
+     "channels": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+     ],
+     "magnitude": 1.0,
+     "start": 26,
+     "ramp": 10,
+     "period": 0,
+     "duration": 0,
+     "remap": [],
+     "type4": "gradual",
+     "change_points": [
+      {
+       "round": 26,
+       "kind": "onset"
+      },
+      {
+       "round": 35,
+       "kind": "full"
+      }
+     ]
+    },
+    {
+     "client": 104,
+     "event_id": 0,
+     "profile": "gradual",
+     "mode": "virtual",
+     "transform": "offset",
+     "channels": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+     ],
+     "magnitude": 1.0,
+     "start": 21,
+     "ramp": 10,
+     "period": 0,
+     "duration": 0,
+     "remap": [],
+     "type4": "gradual",
+     "change_points": [
+      {
+       "round": 21,
+       "kind": "onset"
+      },
+      {
+       "round": 30,
+       "kind": "full"
+      }
+     ]
+    },
+    {
+     "client": 105,
+     "event_id": 0,
+     "profile": "gradual",
+     "mode": "virtual",
+     "transform": "offset",
+     "channels": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+     ],
+     "magnitude": 1.0,
+     "start": 21,
+     "ramp": 10,
+     "period": 0,
+     "duration": 0,
+     "remap": [],
+     "type4": "gradual",
+     "change_points": [
+      {
+       "round": 21,
+       "kind": "onset"
+      },
+      {
+       "round": 30,
+       "kind": "full"
+      }
+     ]
+    },
+    {
+     "client": 106,
+     "event_id": 0,
+     "profile": "gradual",
+     "mode": "virtual",
+     "transform": "offset",
+     "channels": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+     ],
+     "magnitude": 1.0,
+     "start": 30,
+     "ramp": 10,
+     "period": 0,
+     "duration": 0,
+     "remap": [],
+     "type4": "gradual",
+     "change_points": [
+      {
+       "round": 30,
+       "kind": "onset"
+      },
+      {
+       "round": 39,
+       "kind": "full"
+      }
+     ]
+    },
+    {
+     "client": 107,
+     "event_id": 0,
+     "profile": "gradual",
+     "mode": "virtual",
+     "transform": "offset",
+     "channels": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+     ],
+     "magnitude": 1.0,
+     "start": 29,
+     "ramp": 10,
+     "period": 0,
+     "duration": 0,
+     "remap": [],
+     "type4": "gradual",
+     "change_points": [
+      {
+       "round": 29,
+       "kind": "onset"
+      },
+      {
+       "round": 38,
+       "kind": "full"
+      }
+     ]
+    },
+    {
+     "client": 108,
+     "event_id": 0,
+     "profile": "gradual",
+     "mode": "virtual",
+     "transform": "offset",
+     "channels": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+     ],
+     "magnitude": 1.0,
+     "start": 27,
+     "ramp": 10,
+     "period": 0,
+     "duration": 0,
+     "remap": [],
+     "type4": "gradual",
+     "change_points": [
+      {
+       "round": 27,
+       "kind": "onset"
+      },
+      {
+       "round": 36,
+       "kind": "full"
+      }
+     ]
+    }
+   ],
+   "drifted_clients": [
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108
+   ],
+   "jitter": 10
+  },
+  {
+   "scenario": "S2",
+   "variant": "virtual_rotation_partial",
+   "severity": "med",
+   "seed": 42,
+   "timing": "async",
+   "n_rounds": 60,
+   "clients": [
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108
+   ],
+   "events": [
+    {
+     "client": 101,
+     "event_id": 0,
+     "profile": "gradual",
+     "mode": "virtual",
+     "transform": "rotation",
+     "channels": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+     ],
+     "magnitude": 30.0,
+     "start": 22,
+     "ramp": 10,
+     "period": 0,
+     "duration": 0,
+     "remap": [],
+     "type4": "gradual",
+     "change_points": [
+      {
+       "round": 22,
+       "kind": "onset"
+      },
+      {
+       "round": 31,
+       "kind": "full"
+      }
+     ]
+    },
+    {
+     "client": 103,
+     "event_id": 0,
+     "profile": "gradual",
+     "mode": "virtual",
+     "transform": "rotation",
+     "channels": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+     ],
+     "magnitude": 30.0,
+     "start": 26,
+     "ramp": 10,
+     "period": 0,
+     "duration": 0,
+     "remap": [],
+     "type4": "gradual",
+     "change_points": [
+      {
+       "round": 26,
+       "kind": "onset"
+      },
+      {
+       "round": 35,
+       "kind": "full"
+      }
+     ]
+    },
+    {
+     "client": 107,
+     "event_id": 0,
+     "profile": "gradual",
+     "mode": "virtual",
+     "transform": "rotation",
+     "channels": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+     ],
+     "magnitude": 30.0,
+     "start": 29,
+     "ramp": 10,
+     "period": 0,
+     "duration": 0,
+     "remap": [],
+     "type4": "gradual",
+     "change_points": [
+      {
+       "round": 29,
+       "kind": "onset"
+      },
+      {
+       "round": 38,
+       "kind": "full"
+      }
+     ]
+    }
+   ],
+   "drifted_clients": [
+    101,
+    103,
+    107
+   ],
+   "jitter": 10
+  },
+  {
+   "scenario": "S2",
+   "variant": "real_partial",
+   "severity": "med",
+   "seed": 42,
+   "timing": "async",
+   "n_rounds": 60,
+   "clients": [
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108
+   ],
+   "events": [
+    {
+     "client": 101,
+     "event_id": 0,
+     "profile": "gradual",
+     "mode": "real",
+     "transform": "label_remap",
+     "channels": [],
+     "magnitude": 4.0,
+     "start": 22,
+     "ramp": 10,
+     "period": 0,
+     "duration": 0,
+     "remap": [
+      [
+       9,
+       6
+      ],
+      [
+       1,
+       2
+      ]
+     ],
+     "type4": "gradual",
+     "change_points": [
+      {
+       "round": 22,
+       "kind": "onset"
+      },
+      {
+       "round": 31,
+       "kind": "full"
+      }
+     ]
+    },
+    {
+     "client": 103,
+     "event_id": 0,
+     "profile": "gradual",
+     "mode": "real",
+     "transform": "label_remap",
+     "channels": [],
+     "magnitude": 4.0,
+     "start": 26,
+     "ramp": 10,
+     "period": 0,
+     "duration": 0,
+     "remap": [
+      [
+       0,
+       3
+      ],
+      [
+       8,
+       2
+      ]
+     ],
+     "type4": "gradual",
+     "change_points": [
+      {
+       "round": 26,
+       "kind": "onset"
+      },
+      {
+       "round": 35,
+       "kind": "full"
+      }
+     ]
+    },
+    {
+     "client": 107,
+     "event_id": 0,
+     "profile": "gradual",
+     "mode": "real",
+     "transform": "label_remap",
+     "channels": [],
+     "magnitude": 4.0,
+     "start": 29,
+     "ramp": 10,
+     "period": 0,
+     "duration": 0,
+     "remap": [
+      [
+       3,
+       5
+      ],
+      [
+       10,
+       8
+      ]
+     ],
+     "type4": "gradual",
+     "change_points": [
+      {
+       "round": 29,
+       "kind": "onset"
+      },
+      {
+       "round": 38,
+       "kind": "full"
+      }
+     ]
+    }
+   ],
+   "drifted_clients": [
+    101,
+    103,
+    107
+   ],
+   "jitter": 10
+  },
+  {
+   "scenario": "S3",
+   "variant": "virtual_offset_partial",
+   "severity": "med",
+   "seed": 42,
+   "timing": "fixed",
+   "n_rounds": 60,
+   "clients": [
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108
+   ],
+   "events": [
+    {
+     "client": 101,
+     "event_id": 0,
+     "profile": "recurring",
+     "mode": "virtual",
+     "transform": "offset",
+     "channels": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+     ],
+     "magnitude": 1.0,
+     "start": 20,
+     "ramp": 0,
+     "period": 20,
+     "duration": 10,
+     "remap": [],
+     "type4": "recurring",
+     "change_points": [
+      {
+       "round": 20,
+       "kind": "onset"
+      },
+      {
+       "round": 30,
+       "kind": "offset"
+      },
+      {
+       "round": 40,
+       "kind": "onset"
+      },
+      {
+       "round": 50,
+       "kind": "offset"
+      }
+     ]
+    },
+    {
+     "client": 103,
+     "event_id": 0,
+     "profile": "recurring",
+     "mode": "virtual",
+     "transform": "offset",
+     "channels": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+     ],
+     "magnitude": 1.0,
+     "start": 20,
+     "ramp": 0,
+     "period": 20,
+     "duration": 10,
+     "remap": [],
+     "type4": "recurring",
+     "change_points": [
+      {
+       "round": 20,
+       "kind": "onset"
+      },
+      {
+       "round": 30,
+       "kind": "offset"
+      },
+      {
+       "round": 40,
+       "kind": "onset"
+      },
+      {
+       "round": 50,
+       "kind": "offset"
+      }
+     ]
+    },
+    {
+     "client": 107,
+     "event_id": 0,
+     "profile": "recurring",
+     "mode": "virtual",
+     "transform": "offset",
+     "channels": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+     ],
+     "magnitude": 1.0,
+     "start": 20,
+     "ramp": 0,
+     "period": 20,
+     "duration": 10,
+     "remap": [],
+     "type4": "recurring",
+     "change_points": [
+      {
+       "round": 20,
+       "kind": "onset"
+      },
+      {
+       "round": 30,
+       "kind": "offset"
+      },
+      {
+       "round": 40,
+       "kind": "onset"
+      },
+      {
+       "round": 50,
+       "kind": "offset"
+      }
+     ]
+    }
+   ],
+   "drifted_clients": [
+    101,
+    103,
+    107
+   ],
+   "jitter": 5
+  },
+  {
+   "scenario": "S3",
+   "variant": "virtual_rotation_partial",
+   "severity": "med",
+   "seed": 42,
+   "timing": "fixed",
+   "n_rounds": 60,
+   "clients": [
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108
+   ],
+   "events": [
+    {
+     "client": 101,
+     "event_id": 0,
+     "profile": "recurring",
+     "mode": "virtual",
+     "transform": "rotation",
+     "channels": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+     ],
+     "magnitude": 30.0,
+     "start": 20,
+     "ramp": 0,
+     "period": 20,
+     "duration": 10,
+     "remap": [],
+     "type4": "recurring",
+     "change_points": [
+      {
+       "round": 20,
+       "kind": "onset"
+      },
+      {
+       "round": 30,
+       "kind": "offset"
+      },
+      {
+       "round": 40,
+       "kind": "onset"
+      },
+      {
+       "round": 50,
+       "kind": "offset"
+      }
+     ]
+    },
+    {
+     "client": 103,
+     "event_id": 0,
+     "profile": "recurring",
+     "mode": "virtual",
+     "transform": "rotation",
+     "channels": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+     ],
+     "magnitude": 30.0,
+     "start": 20,
+     "ramp": 0,
+     "period": 20,
+     "duration": 10,
+     "remap": [],
+     "type4": "recurring",
+     "change_points": [
+      {
+       "round": 20,
+       "kind": "onset"
+      },
+      {
+       "round": 30,
+       "kind": "offset"
+      },
+      {
+       "round": 40,
+       "kind": "onset"
+      },
+      {
+       "round": 50,
+       "kind": "offset"
+      }
+     ]
+    },
+    {
+     "client": 107,
+     "event_id": 0,
+     "profile": "recurring",
+     "mode": "virtual",
+     "transform": "rotation",
+     "channels": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+     ],
+     "magnitude": 30.0,
+     "start": 20,
+     "ramp": 0,
+     "period": 20,
+     "duration": 10,
+     "remap": [],
+     "type4": "recurring",
+     "change_points": [
+      {
+       "round": 20,
+       "kind": "onset"
+      },
+      {
+       "round": 30,
+       "kind": "offset"
+      },
+      {
+       "round": 40,
+       "kind": "onset"
+      },
+      {
+       "round": 50,
+       "kind": "offset"
+      }
+     ]
+    }
+   ],
+   "drifted_clients": [
+    101,
+    103,
+    107
+   ],
+   "jitter": 5
+  },
+  {
+   "scenario": "S3",
+   "variant": "real_partial",
+   "severity": "med",
+   "seed": 42,
+   "timing": "fixed",
+   "n_rounds": 60,
+   "clients": [
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108
+   ],
+   "events": [
+    {
+     "client": 101,
+     "event_id": 0,
+     "profile": "recurring",
+     "mode": "real",
+     "transform": "label_remap",
+     "channels": [],
+     "magnitude": 4.0,
+     "start": 20,
+     "ramp": 0,
+     "period": 20,
+     "duration": 10,
+     "remap": [
+      [
+       11,
+       6
+      ],
+      [
+       1,
+       2
+      ]
+     ],
+     "type4": "recurring",
+     "change_points": [
+      {
+       "round": 20,
+       "kind": "onset"
+      },
+      {
+       "round": 30,
+       "kind": "offset"
+      },
+      {
+       "round": 40,
+       "kind": "onset"
+      },
+      {
+       "round": 50,
+       "kind": "offset"
+      }
+     ]
+    },
+    {
+     "client": 103,
+     "event_id": 0,
+     "profile": "recurring",
+     "mode": "real",
+     "transform": "label_remap",
+     "channels": [],
+     "magnitude": 4.0,
+     "start": 20,
+     "ramp": 0,
+     "period": 20,
+     "duration": 10,
+     "remap": [
+      [
+       9,
+       2
+      ],
+      [
+       0,
+       3
+      ]
+     ],
+     "type4": "recurring",
+     "change_points": [
+      {
+       "round": 20,
+       "kind": "onset"
+      },
+      {
+       "round": 30,
+       "kind": "offset"
+      },
+      {
+       "round": 40,
+       "kind": "onset"
+      },
+      {
+       "round": 50,
+       "kind": "offset"
+      }
+     ]
+    },
+    {
+     "client": 107,
+     "event_id": 0,
+     "profile": "recurring",
+     "mode": "real",
+     "transform": "label_remap",
+     "channels": [],
+     "magnitude": 4.0,
+     "start": 20,
+     "ramp": 0,
+     "period": 20,
+     "duration": 10,
+     "remap": [
+      [
+       9,
+       5
+      ],
+      [
+       10,
+       7
+      ]
+     ],
+     "type4": "recurring",
+     "change_points": [
+      {
+       "round": 20,
+       "kind": "onset"
+      },
+      {
+       "round": 30,
+       "kind": "offset"
+      },
+      {
+       "round": 40,
+       "kind": "onset"
+      },
+      {
+       "round": 50,
+       "kind": "offset"
+      }
+     ]
+    }
+   ],
+   "drifted_clients": [
+    101,
+    103,
+    107
+   ],
+   "jitter": 5
+  },
+  {
+   "scenario": "S4",
+   "variant": "hand_offset_partial",
+   "severity": "med",
+   "seed": 42,
+   "timing": "fixed",
+   "n_rounds": 60,
+   "clients": [
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108
+   ],
+   "events": [
+    {
+     "client": 101,
+     "event_id": 0,
+     "profile": "sudden",
+     "mode": "virtual",
+     "transform": "offset",
+     "channels": [
+      0,
+      1,
+      2
+     ],
+     "magnitude": 1.0,
+     "start": 20,
+     "ramp": 0,
+     "period": 0,
+     "duration": 0,
+     "remap": [],
+     "type4": "feature_level",
+     "change_points": [
+      {
+       "round": 20,
+       "kind": "onset"
+      }
+     ]
+    },
+    {
+     "client": 103,
+     "event_id": 0,
+     "profile": "sudden",
+     "mode": "virtual",
+     "transform": "offset",
+     "channels": [
+      0,
+      1,
+      2
+     ],
+     "magnitude": 1.0,
+     "start": 20,
+     "ramp": 0,
+     "period": 0,
+     "duration": 0,
+     "remap": [],
+     "type4": "feature_level",
+     "change_points": [
+      {
+       "round": 20,
+       "kind": "onset"
+      }
+     ]
+    },
+    {
+     "client": 107,
+     "event_id": 0,
+     "profile": "sudden",
+     "mode": "virtual",
+     "transform": "offset",
+     "channels": [
+      0,
+      1,
+      2
+     ],
+     "magnitude": 1.0,
+     "start": 20,
+     "ramp": 0,
+     "period": 0,
+     "duration": 0,
+     "remap": [],
+     "type4": "feature_level",
+     "change_points": [
+      {
+       "round": 20,
+       "kind": "onset"
+      }
+     ]
+    }
+   ],
+   "drifted_clients": [
+    101,
+    103,
+    107
+   ],
+   "jitter": 5
+  },
+  {
+   "scenario": "S4",
+   "variant": "ankle_gain_partial",
+   "severity": "med",
+   "seed": 42,
+   "timing": "fixed",
+   "n_rounds": 60,
+   "clients": [
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108
+   ],
+   "events": [
+    {
+     "client": 101,
+     "event_id": 0,
+     "profile": "sudden",
+     "mode": "virtual",
+     "transform": "gain",
+     "channels": [
+      6,
+      7,
+      8
+     ],
+     "magnitude": 1.3,
+     "start": 20,
+     "ramp": 0,
+     "period": 0,
+     "duration": 0,
+     "remap": [],
+     "type4": "feature_level",
+     "change_points": [
+      {
+       "round": 20,
+       "kind": "onset"
+      }
+     ]
+    },
+    {
+     "client": 103,
+     "event_id": 0,
+     "profile": "sudden",
+     "mode": "virtual",
+     "transform": "gain",
+     "channels": [
+      6,
+      7,
+      8
+     ],
+     "magnitude": 1.3,
+     "start": 20,
+     "ramp": 0,
+     "period": 0,
+     "duration": 0,
+     "remap": [],
+     "type4": "feature_level",
+     "change_points": [
+      {
+       "round": 20,
+       "kind": "onset"
+      }
+     ]
+    },
+    {
+     "client": 107,
+     "event_id": 0,
+     "profile": "sudden",
+     "mode": "virtual",
+     "transform": "gain",
+     "channels": [
+      6,
+      7,
+      8
+     ],
+     "magnitude": 1.3,
+     "start": 20,
+     "ramp": 0,
+     "period": 0,
+     "duration": 0,
+     "remap": [],
+     "type4": "feature_level",
+     "change_points": [
+      {
+       "round": 20,
+       "kind": "onset"
+      }
+     ]
+    }
+   ],
+   "drifted_clients": [
+    101,
+    103,
+    107
+   ],
+   "jitter": 5
+  },
+  {
+   "scenario": "S4",
+   "variant": "chest_rotation_partial",
+   "severity": "med",
+   "seed": 42,
+   "timing": "fixed",
+   "n_rounds": 60,
+   "clients": [
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108
+   ],
+   "events": [
+    {
+     "client": 101,
+     "event_id": 0,
+     "profile": "sudden",
+     "mode": "virtual",
+     "transform": "rotation",
+     "channels": [
+      3,
+      4,
+      5
+     ],
+     "magnitude": 30.0,
+     "start": 20,
+     "ramp": 0,
+     "period": 0,
+     "duration": 0,
+     "remap": [],
+     "type4": "feature_level",
+     "change_points": [
+      {
+       "round": 20,
+       "kind": "onset"
+      }
+     ]
+    },
+    {
+     "client": 103,
+     "event_id": 0,
+     "profile": "sudden",
+     "mode": "virtual",
+     "transform": "rotation",
+     "channels": [
+      3,
+      4,
+      5
+     ],
+     "magnitude": 30.0,
+     "start": 20,
+     "ramp": 0,
+     "period": 0,
+     "duration": 0,
+     "remap": [],
+     "type4": "feature_level",
+     "change_points": [
+      {
+       "round": 20,
+       "kind": "onset"
+      }
+     ]
+    },
+    {
+     "client": 107,
+     "event_id": 0,
+     "profile": "sudden",
+     "mode": "virtual",
+     "transform": "rotation",
+     "channels": [
+      3,
+      4,
+      5
+     ],
+     "magnitude": 30.0,
+     "start": 20,
+     "ramp": 0,
+     "period": 0,
+     "duration": 0,
+     "remap": [],
+     "type4": "feature_level",
+     "change_points": [
+      {
+       "round": 20,
+       "kind": "onset"
+      }
+     ]
+    }
+   ],
+   "drifted_clients": [
+    101,
+    103,
+    107
+   ],
+   "jitter": 5
+  }
+ ]
+}

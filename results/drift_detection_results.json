@@ -1,0 +1,45 @@
+{
+  "detection_metrics": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "accuracy": 1.0,
+    "f1": 1.0,
+    "tp": 36,
+    "fp": 0,
+    "tn": 900,
+    "fn": 0
+  },
+  "confusion_matrix": {
+    "SUDDEN": {
+      "SUDDEN": 0,
+      "GRADUAL": 9,
+      "RECURRING": 0,
+      "FEATURE_LEVEL": 0
+    },
+    "GRADUAL": {
+      "SUDDEN": 0,
+      "GRADUAL": 9,
+      "RECURRING": 0,
+      "FEATURE_LEVEL": 0
+    },
+    "RECURRING": {
+      "SUDDEN": 0,
+      "GRADUAL": 0,
+      "RECURRING": 9,
+      "FEATURE_LEVEL": 0
+    },
+    "FEATURE_LEVEL": {
+      "SUDDEN": 0,
+      "GRADUAL": 0,
+      "RECURRING": 2,
+      "FEATURE_LEVEL": 7
+    }
+  },
+  "classification_accuracy": 0.6944444444444444,
+  "per_drift_accuracy": {
+    "SUDDEN": 0.0,
+    "GRADUAL": 1.0,
+    "RECURRING": 1.0,
+    "FEATURE_LEVEL": 0.7777777777777778
+  }
+}

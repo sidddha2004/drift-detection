@@ -15,41 +15,32 @@ This system implements:
 - Raspberry Pi Zero 2 W (512MB RAM, 1GHz CPU)
 - Simulated edge clients using PAMAP2 dataset subjects
 
+## Status
+
+Research restructure in progress. See `docs/RESEARCH_PLAN.md` (plan) and `docs/decisions.md` (log).
+
 ## Project Structure
 
 ```
 ├── config/              # YAML configuration files
 ├── src/
-│   ├── data_pipeline/   # Phase 1: Preprocessing, windowing, drift injection
-│   ├── drift_detection/ # Phase 2-3: Binary detection + multiclass classification
-│   ├── adaptation/      # Phase 4: Type-specific adaptation strategies
-│   ├── federated/       # Phase 5: FL client + server
-│   ├── models/          # Neural network architectures
-│   └── evaluation/      # Phase 6: Metrics + baselines
-├── tests/               # Unit and integration tests
-├── experiments/         # Experiment outputs
-└── results/             # CSVs and plots
+│   ├── data/            # PAMAP2 bout loader, leak-free federation splits
+│   ├── drift/           # drift schedules, real + virtual injectors, per-client streams
+│   ├── drift_detection/ # LSTM model, ADWIN, drift-type classifier
+│   ├── adaptation/      # type-specific adaptation
+│   └── federated/       # FL client / server / aggregation
+├── tests/               # pytest suite (python -m pytest)
+├── experiments/         # runnable experiment entry points
+├── results/             # outputs
+├── docs/                # plan, decision log, specs
+└── legacy/              # retired code kept for reference
 ```
 
 ## Quick Start
 
-### Prerequisites
-
 ```bash
-pip install torch numpy pandas pyyaml river psutil matplotlib seaborn
-```
-
-### Run Phase 1-2 Pipeline
-
-```bash
-# Test preprocessing
-python tests/test_preprocessing.py
-
-# Test drift injection
-python tests/test_drift_injection.py
-
-# Test binary drift detection
-python tests/test_drift_detection.py
+pip install -r requirements.txt   # see the CUDA note inside for the GPU build of torch
+python -m pytest
 ```
 
 ## Dataset

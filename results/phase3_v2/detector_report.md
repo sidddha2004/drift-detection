@@ -1,0 +1,83 @@
+# Phase 3: detector tuning and validation
+
+Tuned on seeds [1001, 1002, 1003] (S0 + all S1-S4 variants, `med` severity, fixed timing) under the bound <= 1.0 false alarm per 1,000 clean windows; validated on seeds [1004, 1005, 1006, 1007, 1008, 1009, 1010]. Horizon 20 rounds; a miss costs the full horizon in the delay objective.
+
+## Tuned configurations
+
+| detector | config | feasible on tuning | tuning delay (rounds) | tuning recall | tuning FA/1000 |
+|---|---|---|---|---|---|
+| D1_adwin_err | `{'delta': 0.3}` | True | 18.75 | 0.27 | 0.81 |
+| D2_ph_err | `{'delta': 0.05, 'lam': 8}` | True | 14.84 | 0.46 | 0.53 |
+| D2c_ph_err_class_cond | `{'delta': 0.05, 'lam': 8}` | True | 15.02 | 0.46 | 0.53 |
+| D2s_ph_err_20pct_labels | `{'delta': 0.02, 'lam': 2}` | True | 16.95 | 0.31 | 0.61 |
+| D3_ph_entropy | `{'delta': 1.0, 'lam': 160}` | False | 16.47 | 0.28 | 1.96 |
+| D4_mmd | `{'q': 0.999, 'persist': 5}` | False | 19.02 | 0.11 | 1.34 |
+| D5_two_level | `{'ent_lam': 80, 'q': 0.99, 'sent_lam': 2, 'alpha_b': 0.001}` | True | 16.44 | 0.37 | 0.94 |
+| D5ns_two_level_no_sentinel | `{'ent_lam': 80, 'q': 0.99, 'alpha_b': 0.001}` | True | 16.70 | 0.33 | 0.88 |
+
+## Validation (unseen seeds), `med` severity, all drifted variants
+
+| detector | recall | mean delay (rounds, detected only) | objective delay | FA / 1000 clean windows | redundant alarms | labels / 1000 windows |
+|---|---|---|---|---|---|---|
+| D1_adwin_err | 0.28 | 14.5 | 18.5 | 0.20 (31/152721) | 282 | 1000 |
+| D2_ph_err | 0.42 | 8.6 | 15.2 | 0.48 (74/152721) | 363 | 1000 |
+| D2c_ph_err_class_cond | 0.42 | 8.4 | 15.1 | 0.47 (72/152721) | 363 | 1000 |
+| D2s_ph_err_20pct_labels | 0.34 | 10.0 | 16.6 | 0.56 (85/152721) | 338 | 200 |
+| D3_ph_entropy | 0.21 | 9.3 | 17.8 | 1.32 (201/152721) | 253 | 0 |
+| D4_mmd | 0.14 | 11.3 | 18.7 | 1.40 (214/152721) | 217 | 0 |
+| D5_two_level | 0.32 | 11.7 | 17.4 | 0.88 (135/152721) | 428 | 454 |
+| D5ns_two_level_no_sentinel | 0.26 | 11.7 | 17.9 | 0.86 (132/152721) | 380 | 289 |
+
+## Placebo recall (chance level): the same onsets applied to the CLEAN S0 stream of the same client
+
+A detector with no information about the drift still scores this recall just by alarming at random times inside the 20-round horizon.
+
+| detector | recall on drifted streams (med) | placebo recall | recall above chance |
+|---|---|---|---|
+| D1_adwin_err | 0.28 | 0.00 | +0.28 |
+| D2_ph_err | 0.42 | 0.05 | +0.37 |
+| D2c_ph_err_class_cond | 0.42 | 0.05 | +0.37 |
+| D2s_ph_err_20pct_labels | 0.34 | 0.03 | +0.32 |
+| D3_ph_entropy | 0.21 | 0.09 | +0.12 |
+| D4_mmd | 0.14 | 0.05 | +0.09 |
+| D5_two_level | 0.32 | 0.04 | +0.28 |
+| D5ns_two_level_no_sentinel | 0.26 | 0.04 | +0.22 |
+
+## Validation by drift mode (recall / delay rounds)
+
+| detector | virtual | real |
+|---|---|---|
+| D1_adwin_err | 0.19 / 14.6 | 0.50 / 14.4 |
+| D2_ph_err | 0.32 / 8.9 | 0.68 / 8.3 |
+| D2c_ph_err_class_cond | 0.32 / 8.7 | 0.67 / 8.2 |
+| D2s_ph_err_20pct_labels | 0.25 / 10.6 | 0.57 / 9.3 |
+| D3_ph_entropy | 0.26 / 9.4 | 0.09 / 8.2 |
+| D4_mmd | 0.18 / 11.4 | 0.06 / 10.4 |
+| D5_two_level | 0.27 / 11.6 | 0.43 / 12.0 |
+| D5ns_two_level_no_sentinel | 0.26 / 11.8 | 0.24 / 11.7 |
+
+## Validation by ground-truth type (recall / delay rounds)
+
+| detector | sudden | gradual | recurring | feature_level |
+|---|---|---|---|---|
+| D1_adwin_err | 0.37 / 16.2 | 0.18 / 13.5 | 0.29 / 12.4 | 0.16 / 16.0 |
+| D2_ph_err | 0.52 / 8.4 | 0.34 / 11.6 | 0.41 / 7.4 | 0.32 / 8.7 |
+| D2c_ph_err_class_cond | 0.54 / 8.5 | 0.34 / 11.4 | 0.40 / 7.0 | 0.29 / 7.6 |
+| D2s_ph_err_20pct_labels | 0.44 / 10.3 | 0.28 / 13.9 | 0.34 / 7.3 | 0.16 / 11.2 |
+| D3_ph_entropy | 0.19 / 9.1 | 0.25 / 10.9 | 0.19 / 7.8 | 0.25 / 10.1 |
+| D4_mmd | 0.17 / 10.3 | 0.13 / 12.1 | 0.14 / 11.9 | 0.08 / 12.6 |
+| D5_two_level | 0.37 / 12.6 | 0.23 / 12.2 | 0.37 / 10.4 | 0.17 / 13.3 |
+| D5ns_two_level_no_sentinel | 0.27 / 12.7 | 0.23 / 12.2 | 0.29 / 10.3 | 0.17 / 13.3 |
+
+## Validation severity sweep (recall / FA per 1000 on the same streams)
+
+| detector | low | med | high |
+|---|---|---|---|
+| D1_adwin_err | 0.13 / 0.11 | 0.28 / 0.22 | 0.54 / 0.34 |
+| D2_ph_err | 0.21 / 0.47 | 0.42 / 0.47 | 0.69 / 0.46 |
+| D2c_ph_err_class_cond | 0.21 / 0.45 | 0.42 / 0.47 | 0.68 / 0.46 |
+| D2s_ph_err_20pct_labels | 0.14 / 0.52 | 0.34 / 0.54 | 0.59 / 0.52 |
+| D3_ph_entropy | 0.14 / 1.30 | 0.21 / 1.29 | 0.34 / 1.25 |
+| D4_mmd | 0.06 / 1.41 | 0.14 / 1.42 | 0.38 / 1.43 |
+| D5_two_level | 0.13 / 0.83 | 0.32 / 0.90 | 0.56 / 0.97 |
+| D5ns_two_level_no_sentinel | 0.10 / 0.83 | 0.26 / 0.88 | 0.49 / 0.93 |

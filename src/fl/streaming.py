@@ -26,6 +26,7 @@ from src.drift.schedule import DriftEvent
 from src.eval import classification_metrics
 from src.fl.adapter import AdaptedLSTM
 from src.fl.align import fit_input_alignment, reference_means
+from src.fl.dp import clip_and_noise
 from src.fl.engine import DEVICE, TrainConfig, evaluate, fedavg, make_model, predict, state_bytes, to_tensors, train_epochs
 from src.utils.seed import seed_everything
 
@@ -96,6 +97,9 @@ class Response:
     prox: float = 0.0               # FedProx-style proximal pull of all weights towards the model at the start of the episode (kind "full")
     replay: float = 1.0             # clean train-pool windows replayed per buffer window (guards against collapsing onto the
                                     # few activities of a recent block; consistent with virtual drift, conflicts with real drift)
+    dp_clip: float = 0.0            # A6 M2 (federated responses): clip the upload's update to this L2 norm (0 = off)
+    dp_noise: float = 0.0           # Gaussian noise multiplier z (sigma = z * dp_clip); dp_log logs update norms without DP
+    dp_log: bool = False
 
 
 @dataclass
@@ -164,6 +168,8 @@ class _Client:
     resp: Optional[Response] = None
     adapted: bool = False
     err_hist: List = field(default_factory=list)      # mean error bit per round (memory: the client's normal error level)
+    ep_start: Optional[Dict] = None                    # DP: uploaded state at the start of the current episode
+    n_uploads: int = 0
 
 
 def _cache(st: _Client, state: Dict, k: int) -> None:
@@ -255,6 +261,7 @@ def run_stream(clients: Dict[int, ClientData], start_models: Dict[int, torch.nn.
     down = np.zeros(n_rounds)
     alarms: List[Tuple[int, int]] = []
     memory_hits: List[Tuple[int, int]] = []
+    update_norms: List[float] = []
     mem = policy.memory >= 0
     onsets = {c: [cp["round"] for e in events[c] for cp in e.change_points(n_rounds) if cp["kind"] == "onset"] for c in cids}
     infos = {c: [{"type4": e.type4, "mode": e.mode, "transform": e.transform, "channels": e.channels, "start": e.start} for e in events[c]] for c in cids}
@@ -348,6 +355,8 @@ def run_stream(clients: Dict[int, ClientData], start_models: Dict[int, torch.nn.
                 st.resp = resp = Response(**{**resp.__dict__, "kind": "align"})
             if isinstance(st.model, AdaptedLSTM):
                 st.model.set_trainable({"adapter": ("input", "feature", "head"), "input": ("input",), "head": ("head",)}.get(resp.kind, ()))
+            if resp.federated and (resp.dp_clip > 0 or resp.dp_log):
+                st.ep_start = copy.deepcopy(st.model.state_dict() if resp.kind == "full" else st.model.adapter_state())
 
         # adaptation round: local training of every client in an episode, then optional federation
         active = [c for c in cids if C[c].episode_left > 0]
@@ -387,7 +396,18 @@ def run_stream(clients: Dict[int, ClientData], start_models: Dict[int, torch.nn.
                 kind = "full" if C[fed[0]].resp.kind == "full" else "adapter"
                 payload = state_bytes(C[fed[0]].model) if kind == "full" else C[fed[0]].model.adapter_bytes()
                 up[r] += payload * len(fed); down[r] += payload * len(fed)
-                if len(fed) > 1:
+                rs0 = C[fed[0]].resp
+                if rs0.dp_clip > 0 or rs0.dp_log:              # A6 M2: every client releases a clipped, noised update
+                    rel = []
+                    for c in fed:
+                        st = C[c]
+                        s = st.model.state_dict() if kind == "full" else st.model.adapter_state()
+                        s, nrm = clip_and_noise(s, st.ep_start, rs0.dp_clip, rs0.dp_noise, gen)
+                        update_norms.append(nrm); st.n_uploads += 1; rel.append(s)
+                    agg = fedavg(rel, [len(C[c].buf_round) for c in fed])
+                    for c in fed:
+                        (C[c].model.load_state_dict(agg) if kind == "full" else C[c].model.load_adapter_state(agg))
+                elif len(fed) > 1:
                     agg = _aggregate([C[c].model for c in fed], [len(C[c].buf_round) for c in fed], kind)
                     for c in fed:
                         (C[c].model.load_state_dict(agg) if kind == "full" else C[c].model.load_adapter_state(agg))
@@ -408,7 +428,7 @@ def run_stream(clients: Dict[int, ClientData], start_models: Dict[int, torch.nn.
 
     alpha = np.stack([np.max([e.alpha(n_rounds) for e in events[c]], axis=0) if events[c] else np.zeros(n_rounds) for c in cids])
     return {"policy": policy.name, "clients": cids, "f1": f1, "acc": acc, "alpha": alpha, "up_bytes": up, "down_bytes": down, "alarms": alarms,
-            "memory_hits": memory_hits,
+            "memory_hits": memory_hits, "update_norms": update_norms, "n_uploads": {c: C[c].n_uploads for c in cids},
             "onsets": onsets, "adapt_rounds": adapt_rounds, "seconds": time.time() - t0, "labels_used": labels_used,
             "in_maps": {c: ((C[c].model.in_w.detach().cpu().numpy(), C[c].model.in_b.detach().cpu().numpy()) if isinstance(C[c].model, AdaptedLSTM) else None) for c in cids},
             "library_sizes": {c: len(C[c].library) for c in cids},

@@ -1,0 +1,36 @@
+{
+ "components": {
+  "model (FP32, deployed)": 213040,
+  "adapter (input map + bottleneck + head)": 7864,
+  "input map only (align fit)": 360,
+  "Page-Hinkley detector state": 64,
+  "labelled arrival buffer: align (lookback 8 + episode 8 rounds)": 294912,
+  "labelled arrival buffer: head_long (45 rounds)": 829440,
+  "labelled arrival buffer: federated retraining (15 rounds)": 276480,
+  "replay pool (client train windows, median client)": 8902656,
+  "memory cache, K = 1 adapter states": 7864,
+  "memory cache, K = 2 adapter states": 15728,
+  "memory cache, K = 4 adapter states": 31456
+ },
+ "systems": {
+  "E3b frozen": 213040,
+  "E5 / E7a (PH + full fed retraining)": 9605280,
+  "PH + federated adapter": 9400104,
+  "E8 (typed: align / head_long)": 9953064,
+  "E8 + memory K = 0": 9953064,
+  "E8 + memory K = 1": 9960928,
+  "E8 + memory K = 2": 9968792,
+  "E8 + memory K = 4": 9984520
+ },
+ "per_round": 2,
+ "n_train": [
+  978,
+  1058,
+  694,
+  947,
+  1126,
+  919,
+  955,
+  1086
+ ]
+}

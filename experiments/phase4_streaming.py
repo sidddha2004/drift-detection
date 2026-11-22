@@ -115,6 +115,19 @@ for _k in (0, 1, 2, 4):
             POLICIES[_n] = Policy(_n, "detector", respond_by_type=mode_typed_oracle, memory=_k, memory_tol=_t, memory_window=_w)
 
 
+# A6 M2: DP on federated uploads. *_dplog = no DP, logs update norms (tuning seeds -> clip bound C = median norm);
+# *_dp_z<z> = clip to C + Gaussian noise with multiplier z (C from results/phase7/dp_clip.json).
+_DP_BASE = {"ph_adapter_fed": R_AD_FED, "ph_full_fed_E5": R_FULL_FED}
+_DP_CLIP_FILE = ROOT / "results/phase7/dp_clip.json"
+_DP_CLIP = json.loads(_DP_CLIP_FILE.read_text()) if _DP_CLIP_FILE.exists() else {}
+for _b, _r in _DP_BASE.items():
+    POLICIES[f"{_b}_dplog"] = Policy(f"{_b}_dplog", "detector", dataclasses.replace(_r, dp_log=True))
+    if _b in _DP_CLIP:
+        for _z in (0.5, 1.0, 2.0, 4.0):
+            _n = f"{_b}_dp_z{_z:g}"
+            POLICIES[_n] = Policy(_n, "detector", dataclasses.replace(_r, dp_clip=_DP_CLIP[_b], dp_noise=_z))
+
+
 def is_learned(pname):
     return pname.startswith(("typed_learned", "typed_memory"))
 
@@ -243,6 +256,7 @@ def main():
                 runs.append({"seed": seed, "scenario": scn_key, "variant": variant, "severity": args.severity, "policy": pname,
                              "metrics": met, "f1": res["f1"].tolist(), "alpha": res["alpha"].tolist(), "alarms": res["alarms"],
                              "up_bytes": res["up_bytes"].tolist(), "down_bytes": res["down_bytes"].tolist(), "memory_hits": res["memory_hits"],
+                             "update_norms": res["update_norms"], "n_uploads": res["n_uploads"],
                              "drifted": m["drifted_clients"], "clients": res["clients"]})
                 print(f"  {scn_key}:{variant:<26} {pname:<24} post {met['post_change_f1']:.3f} pre {met['pre_drift_f1']:.3f} "
                       f"rec {met['recovery_rounds']:.1f} clean {met['clean_clients_post_f1']:.3f} up {met['uplink_bytes'] / 1e3:.0f}kB "

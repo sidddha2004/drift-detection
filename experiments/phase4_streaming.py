@@ -107,6 +107,16 @@ POLICIES = {
     "ph_adapter_local": Policy("ph_adapter_local", "detector", R_AD_LOCAL),
     "ph_adapter_fed": Policy("ph_adapter_fed", "detector", R_AD_FED),
 }
+# A6: E8 + deployable memory (K cached adapter states, switch tolerance tol)
+for _k in (0, 1, 2, 4):
+    for _t in (0.02, 0.05, 0.10):
+        for _w in (0, 3):                       # scoring window: since the alarm | last 3 rounds
+            _n = f"typed_memory_K{_k}_t{round(_t * 100):02d}" + (f"_w{_w}" if _w else "")
+            POLICIES[_n] = Policy(_n, "detector", respond_by_type=mode_typed_oracle, memory=_k, memory_tol=_t, memory_window=_w)
+
+
+def is_learned(pname):
+    return pname.startswith(("typed_learned", "typed_memory"))
 
 
 LABEL_FREE = [FEATURE_NAMES.index(n) for n in ("dF_pre", "dF_post", "dF_delta", "dF_ramp", "dF_slope", "ent_delta", "ent_ramp",
@@ -207,7 +217,7 @@ def main():
     out.mkdir(parents=True, exist_ok=True)
     runs = []
     clf = sc = None
-    if any(p in ("typed_learned", "typed_learned_conf80") for p in args.policies):
+    if any(is_learned(p) for p in args.policies):
         clf, sc = train_mode_classifier()
     for seed in args.seeds:
         t0 = time.time()
@@ -222,7 +232,7 @@ def main():
             for pname in args.policies:
                 pol = apply_tuned(POLICIES[pname])
                 start = {c: (glob if pol.start_model == "global" else personal[c]) for c in cids}
-                if pname == "typed_learned":
+                if pname == "typed_learned" or pname.startswith("typed_memory"):
                     pol = dataclasses.replace(pol, typer=make_typer(clf, sc, start, clients, seed))
                 elif pname == "typed_learned_conf80":
                     pol = dataclasses.replace(pol, typer=make_typer(clf, sc, start, clients, seed, p_virtual=0.8))
@@ -232,7 +242,7 @@ def main():
                 met = stream_metrics(res)
                 runs.append({"seed": seed, "scenario": scn_key, "variant": variant, "severity": args.severity, "policy": pname,
                              "metrics": met, "f1": res["f1"].tolist(), "alpha": res["alpha"].tolist(), "alarms": res["alarms"],
-                             "up_bytes": res["up_bytes"].tolist(), "down_bytes": res["down_bytes"].tolist(),
+                             "up_bytes": res["up_bytes"].tolist(), "down_bytes": res["down_bytes"].tolist(), "memory_hits": res["memory_hits"],
                              "drifted": m["drifted_clients"], "clients": res["clients"]})
                 print(f"  {scn_key}:{variant:<26} {pname:<24} post {met['post_change_f1']:.3f} pre {met['pre_drift_f1']:.3f} "
                       f"rec {met['recovery_rounds']:.1f} clean {met['clean_clients_post_f1']:.3f} up {met['uplink_bytes'] / 1e3:.0f}kB "

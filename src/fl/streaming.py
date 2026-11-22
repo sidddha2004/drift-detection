@@ -113,6 +113,9 @@ class Policy:
     typer: Optional[Callable] = None   # deployable typing: typer(cid, record) -> info dict, called `typing_delay` rounds after an alarm
     typing_delay: int = 5
     start_model: str = "personal"   # "personal" (E3b) | "global" (E3)
+    memory: int = -1                # A6 deployable memory: -1 off; K >= 0 cached adapter states (undo is always a candidate)
+    memory_tol: float = 0.05        # switch to the best candidate if its error <= the client's normal error + tol
+    memory_window: int = 0          # candidates are scored on: 0 = labelled windows since the alarm; n > 0 = the last n rounds
 
 
 def _train(model, x, y, epochs, lr, bs, gen, params=None, anchor=0.0, prox=0.0):
@@ -160,6 +163,40 @@ class _Client:
     init_state: Optional[Dict] = None                  # adapter state at wrap time (identity input map, original head)
     resp: Optional[Response] = None
     adapted: bool = False
+    err_hist: List = field(default_factory=list)      # mean error bit per round (memory: the client's normal error level)
+
+
+def _cache(st: _Client, state: Dict, k: int) -> None:
+    st.library.append(state)
+    del st.library[:max(len(st.library) - k, 0)]
+
+
+def _memory_check(st: _Client, x: torch.Tensor, y: torch.Tensor, k: int, tol: float) -> bool:
+    """A6: score {undo, current, last k cached states} on the labelled windows since the alarm; switch to the best one if its
+    error is within `tol` of the client's normal error (rounds 0-19). Returns True if a candidate was accepted (no new episode)."""
+    hist = st.err_hist[:20]
+    normal = float(np.mean(hist)) if hist else 0.1
+    current = st.model.adapter_state()
+    cands = [("undo", st.init_state), ("current", current)] + [("cache", s) for s in (st.library[-k:] if k > 0 else [])]
+    yy = y.cpu().numpy()
+    errs = []
+    for _, s in cands:
+        st.model.load_adapter_state(s)
+        errs.append(float((predict(st.model, x) != yy).mean()))
+    i = int(np.argmin(errs))                         # ties: undo, then current, then the oldest cached entry
+    if errs[i] > normal + tol:
+        st.model.load_adapter_state(current)
+        return False
+    name, s = cands[i]
+    if name != "current":
+        if name == "cache":                           # the restored entry becomes the current state (re-cached on the next switch)
+            st.library = [e for e in st.library if e is not s]
+        if st.adapted:
+            _cache(st, current, k)
+        st.adapted = name == "cache"
+    st.model.load_adapter_state(s)
+    st.episode_left = 0
+    return True
 
 
 def _aggregate(models: List[torch.nn.Module], sizes: List[int], kind: str) -> Dict[str, torch.Tensor]:
@@ -217,6 +254,8 @@ def run_stream(clients: Dict[int, ClientData], start_models: Dict[int, torch.nn.
     up = np.zeros(n_rounds)
     down = np.zeros(n_rounds)
     alarms: List[Tuple[int, int]] = []
+    memory_hits: List[Tuple[int, int]] = []
+    mem = policy.memory >= 0
     onsets = {c: [cp["round"] for e in events[c] for cp in e.change_points(n_rounds) if cp["kind"] == "onset"] for c in cids}
     infos = {c: [{"type4": e.type4, "mode": e.mode, "transform": e.transform, "channels": e.channels, "start": e.start} for e in events[c]] for c in cids}
     t0, adapt_rounds, labels_used = time.time(), 0, 0
@@ -238,6 +277,7 @@ def run_stream(clients: Dict[int, ClientData], start_models: Dict[int, torch.nn.
             else:
                 pred = predict(st.model, xt)
             err = (pred != y).astype(np.float64)
+            st.err_hist.append(float(err.mean()) if len(err) else 0.0)
             st.buf_x.append(xt); st.buf_y.append(yt); st.buf_round.append(r)
             labels_used += len(y)
             fired = False
@@ -248,9 +288,9 @@ def run_stream(clients: Dict[int, ClientData], start_models: Dict[int, torch.nn.
                         fired = True
                         st.last_alarm_window = st.window
                     st.ph.reset()
-            if policy.trigger == "detector" and fired and st.episode_left == 0 and st.pending is None:
+            if policy.trigger == "detector" and fired and (st.episode_left == 0 or mem) and st.pending is None:
                 if policy.typer is None:
-                    triggered[c] = {"source": "detector"}
+                    triggered[c] = {"source": "detector", "alarm_round": r}
                 else:
                     st.pending = (r + policy.typing_delay, st.window, r)
             if st.pending is not None and r >= st.pending[0]:
@@ -258,9 +298,10 @@ def run_stream(clients: Dict[int, ClientData], start_models: Dict[int, torch.nn.
                        "err": np.concatenate(st.sig["err"]), "per_round": st.stream.per_round, "alarm_window": st.pending[1] - 1,
                        "alarm_round": st.pending[2], "round": r}
                 info = policy.typer(c, rec)
+                alarm_round = st.pending[2]
                 st.pending = None
-                if info is not None and st.episode_left == 0:
-                    info = dict(info); info.setdefault("source", "detector"); triggered[c] = info
+                if info is not None and (st.episode_left == 0 or mem):
+                    info = dict(info); info.setdefault("source", "detector"); info["alarm_round"] = alarm_round; triggered[c] = info
             elif policy.trigger == "oracle":
                 cps = [(cp["round"], cp["kind"], j) for e in events[c] for j, cp in enumerate([q for q in e.change_points(n_rounds) if q["kind"] == "onset"])]
                 if policy.oracle_offsets:
@@ -277,6 +318,18 @@ def run_stream(clients: Dict[int, ClientData], start_models: Dict[int, torch.nn.
             resp = policy.respond_by_type(info) if policy.respond_by_type else policy.response
             if resp is None:
                 continue
+            if mem and resp.kind != "full":
+                if not isinstance(st.model, AdaptedLSTM):
+                    st.model = AdaptedLSTM(st.model)
+                    st.init_state = st.model.adapter_state()
+                lo = r - policy.memory_window + 1 if policy.memory_window > 0 else min(info.get("alarm_round", r), r - 2)
+                keep = [i for i, rr in enumerate(st.buf_round) if rr >= lo]
+                if _memory_check(st, torch.cat([st.buf_x[i] for i in keep]), torch.cat([st.buf_y[i] for i in keep]),
+                                 policy.memory, policy.memory_tol):
+                    memory_hits.append((c, r))
+                    continue
+                if st.episode_left > 0:                 # alarm inside an episode and no candidate fits: keep adapting
+                    continue
             alarms.append((c, r))
             if resp.kind != "full" and not isinstance(st.model, AdaptedLSTM):
                 st.model = AdaptedLSTM(st.model)
@@ -342,7 +395,10 @@ def run_stream(clients: Dict[int, ClientData], start_models: Dict[int, torch.nn.
                 C[c].episode_left -= 1
                 C[c].model.eval()
                 if C[c].episode_left == 0 and C[c].resp.kind != "full":       # cache the finished adaptation for a later recurrence
-                    C[c].library.append(C[c].model.adapter_state())
+                    if mem:
+                        _cache(C[c], C[c].model.adapter_state(), policy.memory)
+                    else:
+                        C[c].library.append(C[c].model.adapter_state())
 
         for k, c in enumerate(cids):                     # evaluation on the held-out test pool (primary endpoint)
             x, y = C[c].stream.eval_batch(r)
@@ -352,6 +408,7 @@ def run_stream(clients: Dict[int, ClientData], start_models: Dict[int, torch.nn.
 
     alpha = np.stack([np.max([e.alpha(n_rounds) for e in events[c]], axis=0) if events[c] else np.zeros(n_rounds) for c in cids])
     return {"policy": policy.name, "clients": cids, "f1": f1, "acc": acc, "alpha": alpha, "up_bytes": up, "down_bytes": down, "alarms": alarms,
+            "memory_hits": memory_hits,
             "onsets": onsets, "adapt_rounds": adapt_rounds, "seconds": time.time() - t0, "labels_used": labels_used,
             "in_maps": {c: ((C[c].model.in_w.detach().cpu().numpy(), C[c].model.in_b.detach().cpu().numpy()) if isinstance(C[c].model, AdaptedLSTM) else None) for c in cids},
             "library_sizes": {c: len(C[c].library) for c in cids},

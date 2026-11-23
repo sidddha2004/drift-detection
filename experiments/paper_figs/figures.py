@@ -24,11 +24,11 @@ OUT = ROOT / "docs/paper/figs"
 
 E8 = "typed_learned"
 SCEN = ["S1", "S2", "S3"]
-NAME = {"frozen_E3_global": "E3 frozen global", "frozen_E3b_personal": "E3b frozen pers.", "periodic_E3c_full_fed": "E3c periodic full",
-        "adwin_full_fed_E4": "E4 ADWIN+full", "ph_full_fed_E5": "E5 PH+full", "ph_fedprox_E7a": "E7a PH+FedProx",
-        "ph_full_local": "PH+full local", "ph_adapter_fed": "PH+adapter fed", "ph_align": "PH+align (fixed)",
-        "ph_head_long": "PH+head (fixed)", "typed_learned": "E8 typed (deploy.)", "ph_mode_oracle": "E8 + true mode",
-        "mode_typed_oracle": "oracle 2-way", "typed_oracle": "oracle 4-way"}
+NAME = {"frozen_E3_global": "Frozen-Global", "frozen_E3b_personal": "Frozen-Personal", "periodic_E3c_full_fed": "Periodic-FedAvg",
+        "adwin_full_fed_E4": "ADWIN-FedAvg", "ph_full_fed_E5": "PH-FedAvg", "ph_fedprox_E7a": "PH-FedProx",
+        "ph_full_local": "PH-LocalFull", "ph_adapter_fed": "PH-FedAdapter", "ph_align": "Fixed-Align",
+        "ph_head_long": "Fixed-Head", "typed_learned": "TLA (ours)", "ph_mode_oracle": "TLA + true mode",
+        "mode_typed_oracle": "Oracle 2-way", "typed_oracle": "Oracle 4-way"}
 ORDER = list(NAME)
 COMPARATOR = {"H1": "frozen_E3b_personal", "H2": "periodic_E3c_full_fed", "H3": "ph_fedprox_E7a", "H5": "ph_head_long"}
 
@@ -87,7 +87,7 @@ def fig_forest(conf, out=OUT):
         col = ("#16a34a" if t["diff"] > 0 else "#b91c1c") if t["significant"] else "#6b7280"
         ax.errorbar(t["diff"], i, xerr=[[t["diff"] - t["ci"][0]], [t["ci"][1] - t["diff"]]], fmt="o", color=col, ms=4, capsize=2)
     ax.set_yticks(range(len(fam))); ax.set_yticklabels([f"{t['h']} {t['scenario']}" for t in fam[::-1]], fontsize=7)
-    ax.axvline(0, color="k", lw=0.8); ax.set_xlabel("E8 minus comparator (post-change macro-F1), 95% CI", fontsize=7)
+    ax.axvline(0, color="k", lw=0.8); ax.set_xlabel("TLA minus comparator (post-change macro-F1), 95% CI", fontsize=7)
     ax.tick_params(axis="x", labelsize=6.5); ax.xaxis.set_major_locator(matplotlib.ticker.MultipleLocator(0.05))
     ax.set_title("Confirmatory tests (colour = Holm-significant)", fontsize=8); ax.grid(axis="x", alpha=0.3)
     fig.tight_layout(); return _save(fig, "forest_confirmatory", out)
@@ -102,7 +102,7 @@ def fig_paired_seeds(ps, out=OUT):
             ax.scatter(np.full(len(d), j) + np.linspace(-0.12, 0.12, len(d)), d, s=12, color="#2563eb", alpha=0.8)
             if d: ax.hlines(np.mean(d), j - 0.25, j + 0.25, color="k", lw=1.5)
         ax.axhline(0, color="#9ca3af", lw=0.8); ax.set_xticks(range(3)); ax.set_xticklabels(SCEN)
-        ax.set_title(f"{h}: E8 - {NAME[comp]}", fontsize=7.5)
+        ax.set_title(f"{h}: TLA - {NAME[comp]}", fontsize=7.5)
     axes[0].set_ylabel("paired difference per seed")
     fig.tight_layout(); return _save(fig, "paired_seeds", out)
 
@@ -147,9 +147,15 @@ def fig_alarm_delay(runs, out=OUT):
     d = alarm_delays(runs); hit = [x for x in d if x is not None]
     fig, ax = plt.subplots(figsize=(4.6, 3))
     ax.hist(hit, bins=np.arange(0, 92, 4), color="#0891b2")
-    ax.set_xlabel("rounds from onset to first alarm (E8, PH detector)"); ax.set_ylabel("drifted clients")
+    ax.set_xlabel("rounds from onset to first alarm (TLA, PH detector)"); ax.set_ylabel("drifted clients")
     ax.set_title(f"detected {len(hit)}/{len(d)} ({len(hit) / max(len(d), 1):.0%}), median delay {np.median(hit) if hit else float('nan'):.0f} rounds", fontsize=8)
     fig.tight_layout(); return _save(fig, "alarm_delay", out)
+
+
+DET_NAME = {"D1": "ADWIN (err)", "D2": "PH (err)", "D2c": "PH class-cond.", "D2s": "PH 20% labels", "D3": "PH entropy",
+            "D4": "MMD", "D5": "two-level", "D5ns": "two-level, no sentinel"}
+MODE_NAME = {"majority": "majority", "rule dF_delta>0.05": "threshold rule", "logreg label-free": "log. reg.",
+             "gboost label-free": "GBDT (label-free)", "gboost all features": "GBDT (all features)"}
 
 
 def fig_detectors(det, out=OUT):
@@ -158,7 +164,7 @@ def fig_detectors(det, out=OUT):
     for i, (k, m) in enumerate(v.items()):
         lf = m["labels_per_1000"] == 0
         ax.scatter(m["fa_per_1000"], m["recall"], s=20 + m["labels_per_1000"] / 8, color="#b91c1c" if lf else "#2563eb", zorder=3)
-        ax.annotate(f"{k.split('_')[0]} (placebo {pl[k]:.2f})", (m["fa_per_1000"], m["recall"]), fontsize=5.5,
+        ax.annotate(f"{DET_NAME.get(k.split('_')[0], k.split('_')[0])} (chance {pl[k]:.2f})", (m["fa_per_1000"], m["recall"]), fontsize=5.5,
                     xytext=(6, -9 if k.startswith("D2c") else 4), textcoords="offset points")
     ax.axvline(1.0, color="k", ls=":", lw=0.8)
     ax.text(1.02, 0.97, "FA bound", fontsize=6, transform=ax.get_xaxis_transform(), va="top")
@@ -171,8 +177,8 @@ def fig_mode(mode, out=OUT):
     names = list(mode); x = np.arange(len(names)); w = 0.27
     fig, ax = plt.subplots(figsize=(5.2, 3))
     for i, (k, c) in enumerate([("acc", "#111827"), ("recall_virtual", "#2563eb"), ("recall_real", "#d97706")]):
-        ax.bar(x + (i - 1) * w, [mode[n][k] for n in names], w, label=k, color=c)
-    ax.set_xticks(x); ax.set_xticklabels(names, rotation=20, ha="right", fontsize=6.5); ax.set_ylim(0, 1.05)
+        ax.bar(x + (i - 1) * w, [mode[n][k] for n in names], w, label={"acc": "accuracy", "recall_virtual": "recall (virtual)", "recall_real": "recall (real)"}[k], color=c)
+    ax.set_xticks(x); ax.set_xticklabels([MODE_NAME.get(n, n) for n in names], rotation=20, ha="right", fontsize=6.5); ax.set_ylim(0, 1.05)
     ax.legend(fontsize=6.5); ax.set_title("Virtual vs real mode classification (leave-one-seed-out)", fontsize=8)
     fig.tight_layout(); return _save(fig, "mode_classifier", out)
 
@@ -184,7 +190,7 @@ def fig_typing_ladder(runs, out=OUT):
     for i, p in enumerate(pols):
         ax.bar(np.arange(4) + i * w, [np.mean(list(full.get((p, s), {np.nan: np.nan}).values())) for s in scen], w, label=NAME[p])
     ax.set_xticks(np.arange(4) + 0.4 - w / 2); ax.set_xticklabels(scen); ax.set_ylim(0.5, 0.9); ax.set_ylabel("post-change macro-F1")
-    ax.legend(fontsize=6, ncol=2); ax.set_title("What typing is worth: deployable -> true mode -> oracle 2-way -> 4-way", fontsize=8)
+    ax.legend(fontsize=6, ncol=2); ax.set_title("What typing is worth: deployable -> true mode -> oracle 2-way -> oracle 4-way", fontsize=8)
     fig.tight_layout(); return _save(fig, "typing_ladder", out)
 
 

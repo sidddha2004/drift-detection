@@ -20,8 +20,8 @@ sys.path.insert(0, str(ROOT))
 from src.fl.dp import epsilon  # noqa: E402
 
 RES = ROOT / "results/phase4_v2"
-SYSTEMS = {"ph_adapter_fed": "PH + federated adapter", "ph_full_fed_E5": "E5 (PH + full fed. retraining)"}
-REFS = {"typed_learned": "E8 (no upload)", "frozen_E3b_personal": "E3b frozen"}
+SYSTEMS = {"ph_adapter_fed": "PH-FedAdapter", "ph_full_fed_E5": "PH-FedAvg"}
+REFS = {"typed_learned": "TLA (no upload)", "frozen_E3b_personal": "Frozen-Personal"}
 ZS = [0.0, 0.5, 1.0, 2.0, 4.0]
 SCEN = ["S1", "S2", "S3"]
 

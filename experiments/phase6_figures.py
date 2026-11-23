@@ -15,10 +15,10 @@ SRC = ROOT / "results/phase4_v2"
 OUT = ROOT / "docs/paper/figs"
 OUT.mkdir(parents=True, exist_ok=True)
 
-LABEL = {"frozen_E3b_personal": "E3b (frozen personalised)", "periodic_E3c_full_fed": "E3c (periodic full retrain)",
-         "ph_full_fed_E5": "E5 (PH + full retrain, federated)", "ph_fedprox_E7a": "E7a (PH + FedProx)",
-         "ph_head_long": "PH + head retrain (fixed)", "typed_learned": "E8 (typed, deployable)", "typed_oracle": "oracle 4-way typing",
-         "ph_adapter_fed": "PH + adapter (federated)"}
+LABEL = {"frozen_E3b_personal": "Frozen-Personal", "periodic_E3c_full_fed": "Periodic-FedAvg",
+         "ph_full_fed_E5": "PH-FedAvg", "ph_fedprox_E7a": "PH-FedProx",
+         "ph_head_long": "Fixed-Head", "typed_learned": "TLA (ours)", "typed_oracle": "Oracle 4-way",
+         "ph_adapter_fed": "PH-FedAdapter"}
 COL = {"frozen_E3b_personal": "#6b7280", "periodic_E3c_full_fed": "#d97706", "ph_full_fed_E5": "#b91c1c", "ph_fedprox_E7a": "#9333ea",
        "ph_head_long": "#0891b2", "typed_learned": "#16a34a", "typed_oracle": "#111827", "ph_adapter_fed": "#2563eb"}
 

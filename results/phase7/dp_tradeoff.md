@@ -47,5 +47,5 @@ F1 = post-change macro-F1 of drifted clients, seed-level mean (sd across seeds).
 
 | reference (no upload, eps = 0) | S1 | S2 | S3 | all |
 |---|---|---|---|---|
-| E8 (no upload) | 0.756 | 0.691 | 0.711 | 0.729 |
-| E3b frozen | 0.677 | 0.612 | 0.761 | 0.682 |
+| TLA (no upload) | 0.756 | 0.691 | 0.711 | 0.729 |
+| Frozen-Personal | 0.677 | 0.612 | 0.761 | 0.682 |

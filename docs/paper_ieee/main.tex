@@ -1,466 +1,212 @@
 \documentclass[conference]{IEEEtran}
 \usepackage{amsmath,amssymb,booktabs,graphicx,url,multirow,array,xcolor}
-\usepackage{algorithm}
-\usepackage{algpseudocode}
 \usepackage{tikz}
 \usetikzlibrary{positioning,arrows.meta,fit,backgrounds}
 \usepackage[hidelinks]{hyperref}
-\graphicspath{{figs/}{../paper/figs/}}
+\graphicspath{{figs/}}
 
-\newcommand{\tla}{\textsc{TLA}}
+% ---- Submission switch: IJCNN 2027 uses double-blind review. \blindtrue for submission, \blindfalse for the final version.
+\newif\ifblind
+\blindtrue
+\newcommand{\codeurl}{\ifblind an anonymised repository (link withheld for review)\else\url{https://github.com/sidddha2004/drift-detection}\fi}
 \newcommand{\fone}{macro-F1}
-% Code link: replace with the public (or anonymised) repository before submission.
-\newcommand{\codeurl}{\url{https://github.com/sidddha2004/drift-detection}}
+\newcommand{\tla}{TLA}
 
 \begin{document}
 
-\title{Typed Local Adaptation for Concept Drift in\\ Federated Wearable Activity Recognition:\\ Gains, Failure Modes, and Privacy Limits}
+\title{When Does Drift Typing Help? A Pre-Registered Study of Local Adaptation in Federated Wearable HAR}
 
-% NOTE: check the spelling of every name; the BTP report and the earlier draft disagree.
+\ifblind
+\author{\IEEEauthorblockN{Anonymous Authors}\IEEEauthorblockA{Paper under double-blind review}}
+\else
 \author{
-\IEEEauthorblockN{Abhinav Agarwal}
+\IEEEauthorblockN{Abhinav Agrawal, Siddharth Solanki}
 \IEEEauthorblockA{Dept. of Computer Science and Engineering\\
-The LNM Institute of Information Technology\\
-Jaipur, India\\
-23ucs506@lnmiit.ac.in}
+The LNM Institute of Information Technology, Jaipur, India\\
+\{23ucs506, 23ucs714\}@lnmiit.ac.in}
 \and
-\IEEEauthorblockN{Siddharth Solanki}
-\IEEEauthorblockA{Dept. of Computer Science and Engineering\\
-The LNM Institute of Information Technology\\
-Jaipur, India\\
-23ucs714@lnmiit.ac.in}
-\and
-\IEEEauthorblockN{Richa Priyadarshini}
-\IEEEauthorblockA{Dept. of Electronics and Communication Engineering\\
-The LNM Institute of Information Technology\\
-Jaipur, India\\
-richa.priyadarshini@lnmiit.ac.in}
+\IEEEauthorblockN{Richa Priyadarshani}
+\IEEEauthorblockA{Dept. of Communication and Computer Engineering\\
+The LNM Institute of Information Technology, Jaipur, India\\
+richa.priyadarshani@lnmiit.ac.in}
 }
+\fi
 
 \maketitle
 
 \begin{abstract}
-Wearable activity-recognition models trained with federated learning (FL) lose accuracy when a sensor slips, its gain changes, or the meaning of an activity changes after deployment. The usual remedy, federated retraining of the whole model, costs megabytes of uplink per drift episode and also disturbs clients that never drifted. We ask whether a client can instead \emph{detect} drift from its own error stream, \emph{type} it as virtual (inputs changed) or real (labels changed), and \emph{repair} it locally with a response matched to the type. Our system, Typed Local Adaptation (\tla{}), uses a Page--Hinkley detector, a label-free gradient-boosting typer, a closed-form 90-parameter input alignment for virtual drift and head retraining with replay for real drift; it uploads nothing. On a ground-truth drift benchmark built on PAMAP2 and a pre-specified evaluation over 10 held-out seeds, \tla{} raises post-change \fone{} over a frozen personalised model by $+0.079$ on sudden drift (Holm $p=0.023$), and a federated adapter matches full-model retraining at 4\% of its uplink. The study also shows where local adaptation stops working: detection delay, not adaptation, limits the gain; on recurring drift \tla{} is worse than doing nothing because sparse labels cannot reveal when a drift has ended; and client-level differential privacy on uploads collapses accuracy at wearable cohort sizes.
+Federated models for wearable human activity recognition (HAR) lose accuracy when a sensor rotates, its gain changes, or an activity label changes meaning after deployment. A tempting remedy is to detect the drift on the device, guess its type, and apply a cheap repair matched to that type. We test this idea carefully rather than promote it. On a PAMAP2 benchmark with ground-truth drift events (8 clients; sudden, gradual, recurring and sensor-level drift) and a pre-registered analysis over 10 held-out seeds, we compare typed local adaptation (\tla{}) with no adaptation, fixed local repairs and federated retraining. Four findings stand out. (i) Uploading only a 1{,}966-parameter adapter instead of the full model cuts uplink by 96\% with no loss in accuracy; most of this saving follows directly from the adapter's size. (ii) Local adaptation leaves clients that did not drift untouched, whereas periodic federated retraining lowers their \fone{} by about 5 points. (iii) Typing does not beat simply retraining the classifier head after every alarm, and on recurring drift \tla{} is worse than no adaptation, because responses arrive late and are never undone. (iv) Guessing the type wrong is costly: aligning the input against a label change loses up to 0.21 \fone{}. Both the detector and the repairs need labels on the device; only the type classifier is label-free.
 \end{abstract}
 
 \begin{IEEEkeywords}
-federated learning, concept drift, human activity recognition, wearable sensors, on-device adaptation, differential privacy
+federated learning, concept drift, human activity recognition, wearable sensors, on-device adaptation
 \end{IEEEkeywords}
 
 % =====================================================================
 \section{Introduction}
-\IEEEPARstart{H}{uman} activity recognition (HAR) from body-worn inertial sensors is a natural workload for federated learning: the data are personal and should stay on the device~\cite{mcmahan2017fedavg,aouedi2024fedhar}. Deployed models, however, face \emph{concept drift}~\cite{gama2014survey,lu2019learning}. A strap slips and rotates the sensor axes, a replacement sensor has a different gain, or an application redefines what an activity label means. The model keeps predicting with confidence while its accuracy falls.
+Federated learning (FL) lets wearable devices train a shared activity model without sending raw data~\cite{mcmahan2017fedavg,aouedi2024fedhar}. After deployment, however, the data drift~\cite{gama2014survey,lu2019learning}: a strap slips and rotates the sensor axes, a replacement sensor has a different gain, or an application redefines an activity. Drift comes in two kinds. Under \emph{virtual} drift the input distribution $P(X)$ changes and $P(Y\mid X)$ stays fixed, so the fault can be undone at the input. Under \emph{real} drift $P(Y\mid X)$ changes, so the classifier itself must change. Most federated drift methods treat both alike and retrain the full model~\cite{jothimurugesan2023feddrift,panchal2023flash}, which costs megabytes of uplink per episode.
 
-Drift comes in two kinds that call for different repairs. Under \emph{virtual} drift the input distribution $P(X)$ changes while $P(Y\mid X)$ stays fixed; the fault is in the input and can be undone at the input. Under \emph{real} drift $P(Y\mid X)$ itself changes; the fault is in the label mapping and the classifier must be retrained. Most federated drift methods treat both alike and respond with full-model retraining~\cite{jothimurugesan2023feddrift,panchal2023flash,mawuli2023fedstream}. On a wearable this is expensive in uplink, can pull drifted weights into the models of clients that did not drift, and does not target where the fault lives.
+This suggests an appealing design: detect drift on the device, \emph{type} it as virtual or real, and apply a cheap local repair matched to the type. This paper asks when that design actually helps. We test it under a pre-registered protocol and report where it works and where it fails.
 
-This paper studies the alternative: let each client detect, type and repair drift on its own, and measure precisely what that buys and where it fails. We pose five research questions:
-\begin{itemize}
-\item \textbf{RQ1} How quickly and reliably can a client detect drift from its own error stream with few labels?
-\item \textbf{RQ2} Can it tell virtual from real drift without labels, and what does a wrong guess cost?
-\item \textbf{RQ3} How much accuracy can local, zero-uplink responses recover compared with federated retraining?
-\item \textbf{RQ4} Why does local adaptation fail on recurring drift, and can a cached-state memory fix it?
-\item \textbf{RQ5} What does adaptation cost in device memory, and can client-level differential privacy (DP) protect the uploads that federated alternatives require?
-\end{itemize}
+\textbf{Labels are required.} Every system studied here, ours included, needs correct labels on the device soon after the data arrive: the drift detector monitors the model's errors, and both repairs fit to labelled windows. Only the type classifier works without labels. Our results therefore apply to settings with prompt, if sparse, labels (here about two labelled windows per client and round), for example through user confirmation or self-labelling apps.
 
-\textbf{Key findings.} (1) \emph{Typing pays because mistakes are asymmetric}: aligning the input against a real drift costs 0.18--0.21 \fone{}, while the right response recovers accuracy with 90 parameters and no gradient step. (2) \emph{Local beats federated on cost}: zero-uplink responses match or exceed federated full-model retraining, and a federated adapter matches it at 4\% of the uplink. (3) \emph{Detection is the bottleneck}: with an oracle trigger, alignment recovers 12--16 points; with a real detector (median delay 23 rounds) most of that gain is lost. (4) \emph{Adapting is easy, knowing when to stop is not}: on recurring drift, half of all responses arrive after the drift has ended, and with about two labelled windows per round no error-based rule can tell drift-on from drift-off. (5) \emph{Client-level DP does not fit wearable cohorts}: with 8 clients even mild noise reduces \fone{} from 0.70 to about 0.28; keeping updates on the device is the only setting we tested that preserves both accuracy and privacy budget.
-
-\textbf{Contributions.}
-\begin{itemize}
-\item A reproducible PAMAP2 drift benchmark with a ground-truth change-point manifest covering sudden, gradual, recurring and sensor-level drift in virtual and real form, and a streaming FL simulator that counts the real bytes of every upload and download.
-\item \tla{}, a client-side pipeline whose virtual-drift response is a closed-form, ridge-regularised input alignment that needs no gradient step and no uplink.
-\item A pre-specified evaluation on 10 held-out seeds with Holm-corrected paired tests that reports positive and negative results as found.
-\item A mechanistic diagnosis of the recurring-drift failure, a negative result for a deployable memory, an on-device memory budget, and a 640-run study showing that client-level DP on uploads has no useful operating point at 8 clients.
-\end{itemize}
+\textbf{Contributions.} In order of importance:
+\begin{enumerate}
+\item \emph{Adapter-only federation.} Sending a small adapter instead of the whole model cuts uplink by 96\% with no loss in post-change \fone{} (a pre-registered non-inferiority test). This mostly reflects the adapter's size (1{,}966 vs.\ 53{,}260 parameters, 3.7\%): the finding is that the small adapter is \emph{enough}, not that it compresses anything.
+\item \emph{Protection of clean users.} Local adaptation leaves clients that did not drift unchanged, whereas periodic federated retraining lowers their \fone{} by about 5 points.
+\item \emph{A diagnosed failure.} Typed adaptation fails on recurring drift; we show that half of its responses arrive after the drift has ended and are never undone, and that a cached-state memory cannot fix this with sparse labels.
+\item \emph{The cost of a wrong type.} Applying the virtual-drift repair to a real drift loses 0.18--0.21 \fone{}; the costs of type errors are asymmetric.
+\end{enumerate}
+We also release a PAMAP2 drift benchmark with a ground-truth change-point manifest and a streaming simulator that counts every transmitted byte. Typed adaptation does \emph{not} outperform a fixed head-retraining response (H5 fails), and we make no claim that it does.
 
 % =====================================================================
 \section{Related Work}
-\textbf{Concept drift.} Surveys divide drift into virtual and real and into sudden, gradual, incremental and recurring profiles~\cite{gama2014survey,lu2019learning}. Lu~\emph{et al.} note that \emph{understanding} a drift, i.e., what changed, has received far less attention than detecting it~\cite{lu2019learning}. Standard detectors monitor an error stream, e.g., ADWIN~\cite{bifet2007adwin} and the Page--Hinkley test~\cite{page1954}, both available in \textsc{River}~\cite{montiel2021river}; they report \emph{that} a change happened, not \emph{which} kind.
+\textbf{FL under drift.} FedDrift detects drift per client and clusters clients into concept-specific models~\cite{jothimurugesan2023feddrift}; Flash adapts client and server learning rates when drift occurs~\cite{panchal2023flash}; FedConD handles asynchronous sensor clients~\cite{chen2021fedcond}; CDA-FedAvg combines local detection with rehearsal on HAR data~\cite{casado2022cdafedavg}; FedStream tracks streams with class prototypes~\cite{mawuli2023fedstream}; Chen~\emph{et al.} adapt to virtual drift separately from real drift~\cite{chen2025virtual}; a recent survey organises the field by temporal profile, coverage and synchrony~\cite{mahdi2025fdal}. \emph{Difference:} these methods aggregate model updates after drift; we measure how far a client gets with zero-uplink repairs, and count the bytes of every alternative.
 
-\textbf{Federated optimisation under heterogeneity.} FedAvg~\cite{mcmahan2017fedavg} assumes stationary data. FedProx~\cite{li2020fedprox} adds a proximal term and FedNova~\cite{wang2020fednova} normalises local updates for non-IID clients; clustered FL groups clients with similar updates~\cite{sattler2021cfl,mehta2023flacc,autocfl2024}.
+\textbf{Memory for recurring concepts.} Stream learners reuse models when an old concept returns: Katakis~\emph{et al.} cluster batches into contexts and keep an ensemble per context~\cite{katakis2010recurring}; RCD stores a classifier and a data sample per context and reuses it when a multivariate test matches the new data~\cite{goncalves2013rcd}; Gama and Kosina learn meta-models that predict which stored model applies~\cite{gama2014recurrent}. \emph{Difference:} these methods see far more labelled data per decision than a wearable client; we show that with about two labels per round, error-based reuse cannot tell when a concept has returned.
 
-\textbf{Federated learning under drift.} A recent survey organises drift-aware FL by the temporal profile, spatial coverage and synchrony of drift~\cite{mahdi2025fdal}, the axes along which our benchmark varies. FedDrift detects drift per client and clusters clients into concept-specific models~\cite{jothimurugesan2023feddrift}; Flash adapts client and server learning rates~\cite{panchal2023flash}; FedConD targets asynchronous sensor clients~\cite{chen2021fedcond}; CDA-FedAvg combines local detection with rehearsal on HAR data~\cite{casado2022cdafedavg}; FedStream tracks streams with class prototypes~\cite{mawuli2023fedstream}; FALCON chooses which drifted samples to label~\cite{wang2026falcon}; Alnaim and Alwakeel study federated continual learning under asynchronous drift for traffic classification~\cite{driftguard2026}. Closest to our typing, Chen~\emph{et al.} detect and adapt to virtual drift separately from real drift in federated streams~\cite{chen2025virtual}. Table~\ref{tab:related} positions our work. What is new here is that the drift type selects a \emph{zero-uplink} response on the client, and that the cost of every choice is measured in bytes on a ground-truth benchmark.
-
-\textbf{Federated HAR and parameter-efficient adaptation.} Surveys name personalisation, non-IID users and drift as open problems in federated HAR~\cite{aouedi2024fedhar}; FedHAR handles online drift with semi-supervised personalisation~\cite{yu2023fedhar}; federated stream mining has been applied to open-set HAR on Wi-Fi CSI~\cite{land2026}, and mobile FL systems are surveyed in~\cite{jiang2026cm}. Bottleneck adapters~\cite{houlsby2019adapter} motivate our small-payload federated variant.
-
-\begin{table}[t]
-\centering
-\caption{Positioning against federated drift methods (as described in the cited papers).}\label{tab:related}
-\small
-\setlength{\tabcolsep}{3pt}
-\begin{tabular}{p{2.15cm}p{1.15cm}p{2.4cm}p{1.6cm}}
-\toprule
-Method & Type-aware & Response & Data \\
-\midrule
-FedDrift~\cite{jothimurugesan2023feddrift} & no & cluster, retrain model & general \\
-Flash~\cite{panchal2023flash} & no & adaptive learning rates & general \\
-FedConD~\cite{chen2021fedcond} & no & asynchronous retraining & sensor \\
-CDA-FedAvg~\cite{casado2022cdafedavg} & no & rehearsal retraining & HAR \\
-FedStream~\cite{mawuli2023fedstream} & no & class prototypes & streams \\
-Chen~\emph{et al.}~\cite{chen2025virtual} & virtual/real & separate adaptation & streams \\
-\textbf{\tla{} (ours)} & virtual/real & local, closed-form or head; 0 uplink & HAR \\
-\bottomrule
-\end{tabular}
-\end{table}
+\textbf{HAR under sensor displacement.} Displacement and rotation of body-worn sensors are a known cause of accuracy loss~\cite{kunze2014placement,banos2014displacement}. Remedies include robust sensor fusion~\cite{banos2014displacement} and unsupervised recalibration that estimates the shift in feature space~\cite{chavarriaga2013unsupervised}. \emph{Difference:} we treat displacement as one drift type inside a federated stream, fix it with a closed-form input map, and test whether choosing between repairs by drift type pays off.
 
 % =====================================================================
-\section{Problem Formulation}
-\label{sec:problem}
-There are $K$ clients. In round $t=1,\dots,T$ client $k$ receives a few labelled windows $(x,y)$ with $x\in\mathbb{R}^{256\times 9}$ (three tri-axial accelerometers) and $y\in\{1,\dots,12\}$, and classifies a stream of unlabelled windows with its deployed model $f_k$. The data of client $k$ follow $P_{k,t}(X,Y)$. Drift on client $k$ starts at round $t_k^\star$ and has strength $\alpha_k(t)\in[0,1]$. It is \emph{virtual} if $P_{k,t}(X)$ changes while $P_{k,t}(Y\mid X)$ is fixed, and \emph{real} if $P_{k,t}(Y\mid X)$ changes.
+\section{Benchmark, Method and Protocol}
+\textbf{Data and model.} We use PAMAP2~\cite{reiss2012pamap2} subjects 101--108 as 8 clients (subject 109 has one 64\,s bout and is excluded), the nine $\pm16$\,g accelerometer channels of the hand, chest and ankle IMUs, and windows of 256 samples (stride 128) cut inside activity bouts after trimming 5\,s at each end. Contiguous 16-window blocks form train/validation/test splits (60/15/25\%) with a purge between splits, and normalisation uses frozen training statistics. The classifier is a \emph{two-layer} LSTM with 64 hidden units and a 12-way head: $19{,}200+33{,}280$ LSTM weights plus $780$ head weights, i.e., 53{,}260 parameters (208\,kB). All systems start from the same personalised model (FedAvg for 60 rounds, then local fine-tuning; clean \fone{} 0.935).
 
-The primary endpoint is the \emph{post-change \fone{}} of the drifted clients $\mathcal{D}$,
-\begin{equation}
-\mathrm{F1}_{\mathrm{post}}=\frac{1}{|\mathcal{D}|}\sum_{k\in\mathcal{D}}\frac{1}{T-t_k^\star+1}\sum_{t=t_k^\star}^{T}\mathrm{F1}_k(t),
-\end{equation}
-where $\mathrm{F1}_k(t)$ is the \fone{} of $f_k$ on held-out windows transformed at strength $\alpha_k(t)$. The cost is the uplink $U=\sum_{k,t}u_{k,t}$, the serialised bytes each client uploads. A good system has high $\mathrm{F1}_{\mathrm{post}}$, low $U$, and does not lower the accuracy of clients that did not drift.
+\textbf{Drift.} Virtual drift adds a 1\,g offset, a $\times1.3$ gain or a $20^\circ$ rotation to the raw signal; real drift swaps the labels of two class pairs. Streams have 120 rounds, about two labelled windows per client and round (median 2, range 1--3), and 3 of 8 clients drift. Scenarios: \textbf{S1} sudden onset at round 30 (gain, rotation, offset, real); \textbf{S2} 10-round ramp with onsets in rounds 30--40 (rotation, real); \textbf{S3} recurring, drift on in rounds 30--44, 60--74, 90--104 (rotation, real); \textbf{S4} one sensor only (ankle gain, chest rotation); \textbf{S0} no drift (control). The primary endpoint is the \emph{post-change \fone{}} of the drifted clients from onset to the end of the stream.
 
-% =====================================================================
-\section{Benchmark}
-\textbf{Data.} We use PAMAP2~\cite{reiss2012pamap2} subjects 101--108 as $K=8$ clients (subject 109 has a single 64\,s bout and is excluded) and the nine $\pm16$\,g accelerometer channels of the hand, chest and ankle IMUs at 100\,Hz. Windows of 256 samples (stride 128) are cut only inside activity bouts after trimming 5\,s from both bout ends; contiguous 16-window blocks are assigned to train/validation/test (60/15/25\%) with a purge between splits; normalisation uses frozen train-split statistics. These choices remove leakage across splits. The trimmed protocol was fixed before any drift experiment; without trimming every method scores 4--6 points lower and no ranking changes.
-
-\textbf{Base model.} A two-layer LSTM~\cite{hochreiter1997lstm} (hidden size 64, 53{,}260 parameters, 208\,kB in FP32) with a 12-way linear head. All systems start from the same personalised model: FedAvg for 60 rounds of 2 local epochs, then local fine-tuning. Its clean \fone{} is 0.935 (FedAvg alone 0.893, local-only 0.939).
-
-\textbf{Drift generator.} A drift event is a tuple (profile, mode, transform, sensors, coverage, timing). Virtual drift transforms the raw signal: an offset of 1\,g, a gain of $\times1.3$, or a $20^\circ$ rotation about the sensor $x$-axis. Real drift swaps the labels of two disjoint class pairs (4 classes). Each stream has $T=120$ rounds, about two labelled windows arrive per client and round (median 2, range 1--3), and 3 of the 8 clients drift. Table~\ref{tab:scen} lists the scenarios; every event is logged in a change-point manifest, so detection and typing can be scored against ground truth.
-
-\begin{table}[t]
-\centering
-\caption{Drift scenarios (3 of 8 clients drift, medium severity).}\label{tab:scen}
-\small
-\begin{tabular}{llp{4.6cm}}
-\toprule
-ID & Profile & Definition \\
-\midrule
-S1 & sudden & onset at round 30; gain, rotation, offset, real \\
-S2 & gradual & 10-round ramp, onsets in rounds 30--40; rotation, real \\
-S3 & recurring & on in rounds 30--44, 60--74, 90--104; rotation, real \\
-S4 & sensor-level & virtual transform on one IMU (descriptive) \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-% =====================================================================
-\section{Typed Local Adaptation}
-Fig.~\ref{fig:system} shows the pipeline that runs on every client. Algorithm~\ref{alg:tla} gives it in full.
+\textbf{Typed local adaptation (\tla{}).} Fig.~\ref{fig:system} shows the pipeline. Each client runs a Page--Hinkley test~\cite{page1954} on its error bit ($\delta=0.05$, $\lambda=8$, tuned on tuning seeds under one false alarm per 1{,}000 clean windows). Five rounds after an alarm, a gradient-boosting classifier~\cite{friedman2001gbm} predicts virtual or real drift from \emph{label-free} features (changes of window statistics, prediction entropy and per-sensor shift). Virtual drift is repaired by a closed-form, ridge-regularised affine map per IMU that moves the class means of recent drifted windows onto stored clean class means; it is written into a 90-parameter input layer and needs no gradient step. Real drift is repaired by retraining the 780-parameter head on the last 45 rounds of labelled windows, replaying clean windows of classes missing from that buffer. \tla{} uploads nothing.
 
 \begin{figure}[t]
 \centering
-\begin{tikzpicture}[
-  node distance=3.5mm and 4mm,
-  box/.style={draw, rounded corners=2pt, align=center, font=\scriptsize, minimum height=7mm, inner sep=2pt, fill=white},
-  arr/.style={-{Stealth[length=2mm]}, thick}]
-\node[box, text width=1.35cm] (in) {sensor stream\\(9 ch., 100\,Hz)};
-\node[box, text width=1.35cm, right=of in] (model) {deployed LSTM\\$+$ input map};
-\node[box, text width=1.35cm, right=of model] (ph) {Page--Hinkley\\on error bit};
-\node[box, text width=1.35cm, below=6mm of ph] (type) {typer (GBDT)\\after 5 rounds};
-\node[box, text width=1.55cm, below left=6mm and 1mm of type, fill=blue!6] (align) {\textbf{virtual}: closed-form\\input alignment};
-\node[box, text width=1.55cm, below right=6mm and 1mm of type, fill=orange!10] (head) {\textbf{real}: head retrain\\with replay};
-\node[box, text width=1.35cm, left=10mm of type] (lab) {few labels\\($\approx$2/round)};
-\draw[arr] (in) -- (model);
-\draw[arr] (model) -- node[above, font=\tiny] {error} (ph);
-\draw[arr] (ph) -- node[right, font=\tiny] {alarm} (type);
-\draw[arr] (type) -- (align);
-\draw[arr] (type) -- (head);
-\draw[arr] (lab) -- (type);
-\draw[arr, dashed] (align.west) -| (model.south);
-\draw[arr, dashed] (head.east) -- ++(0.25,0) |- ([yshift=-1mm]model.east);
-\begin{scope}[on background layer]
-\node[draw=gray, dashed, rounded corners, fit=(in)(model)(ph)(type)(align)(head)(lab), inner sep=2.5mm, label={[font=\scriptsize]above:client $k$ (uploads nothing)}] {};
-\end{scope}
+\begin{tikzpicture}[node distance=3mm and 3.5mm,
+  box/.style={draw, rounded corners=2pt, align=center, font=\scriptsize, minimum height=6.5mm, inner sep=2pt},
+  arr/.style={-{Stealth[length=1.8mm]}, thick}]
+\node[box, text width=1.25cm] (s) {labelled windows ($\approx$2/round)};
+\node[box, text width=1.2cm, right=of s] (ph) {Page--Hinkley on errors};
+\node[box, text width=1.3cm, right=of ph] (ty) {type classifier (label-free)};
+\node[box, text width=1.35cm, above right=1mm and 3.5mm of ty, fill=blue!6] (al) {virtual: input alignment};
+\node[box, text width=1.35cm, below right=1mm and 3.5mm of ty, fill=orange!10] (hd) {real: head retraining};
+\draw[arr] (s) -- (ph); \draw[arr] (ph) -- node[above, font=\tiny]{alarm} (ty);
+\draw[arr] (ty) -- (al); \draw[arr] (ty) -- (hd);
 \end{tikzpicture}
-\caption{\tla{} on one client. An alarm on the error stream triggers typing; the predicted type selects a local repair that updates the deployed model. No update leaves the device; only the federated baselines contact the server.}
+\caption{Typed local adaptation on one client. Detection and both repairs use labels; only the type classifier does not. Nothing is uploaded.}
 \label{fig:system}
 \end{figure}
 
-\textbf{Detection.} Each client monitors the error bit $e_t=\mathbb{1}[\hat y_t\neq y_t]$ on its labelled windows with the Page--Hinkley test~\cite{page1954}:
-\begin{equation}
-m_t=\sum_{i\le t}\bigl(e_i-\bar e_i-\delta\bigr),\qquad \text{alarm if } m_t-\min_{s\le t}m_s>\lambda,
-\end{equation}
-with $\delta=0.05$, $\lambda=8$ and a 30-window cooldown, tuned on tuning seeds only under a bound of one false alarm per 1{,}000 clean windows.
+\textbf{Systems compared.} No adaptation: \emph{Global} (FedAvg model) and \emph{Personalized} (the shared starting model). Federated retraining of the full model: \emph{Periodic} (every 10 rounds), \emph{ADWIN + full} and \emph{PH + full} (after an ADWIN~\cite{bifet2007adwin} or Page--Hinkley alarm), and \emph{PH + FedProx} (with a proximal term, $\mu=1$~\cite{li2020fedprox}). \emph{PH + federated adapter}: alarmed clients train and average the adapter, i.e., the input layer (90), a rank-8 residual bottleneck (1{,}096) and the head (780), 1{,}966 parameters or 7.9\,kB per upload. Local repairs: \emph{PH + local full retraining}, \emph{Input alignment (fixed)} and \emph{Head retraining (fixed)}, which apply one repair after every alarm, and \tla{}. Upper references: \tla{} with the true type, and oracle 2-way and 4-way typing with true alarm times. The federated baselines re-implement the response step of drift-aware FL on our backbone and are not the official code of FedDrift or FedProx.
 
-\textbf{Typing.} Five rounds after an alarm, a gradient-boosting classifier~\cite{friedman2001gbm} predicts \emph{virtual} or \emph{real} from label-free episode features: changes of per-channel window statistics, of prediction entropy and of the error series, and per-sensor shift. It is trained on episodes of seeds 1004--1010, disjoint from the evaluation seeds.
-
-\textbf{Virtual drift: closed-form input alignment.} A virtual drift is a class-independent transform of the input, so it can be undone at the input. Gradient descent on an input layer fails here: the model is still right on most windows, and the cross-entropy carries almost no signal about the transform. Instead, for each IMU $m$ we fit an affine map $(A_m,t_m)$ that moves the class-conditional means of the recent drifted buffer, $\bar x^{\mathrm{drift}}_{m,c}$, onto the clean class means stored on the client, $\bar x^{\mathrm{clean}}_{m,c}$:
-\begin{equation}
-\min_{A_m,t_m}\ \sum_{c} w_c\bigl\lVert \bar x^{\mathrm{drift}}_{m,c}A_m+t_m-\bar x^{\mathrm{clean}}_{m,c}\bigr\rVert_2^2+\lambda_m\lVert A_m-I_3\rVert_F^2,
-\label{eq:align}
-\end{equation}
-with $w_c=\min(N_c,40)$ and $\lambda_m$ proportional to the trace of the weighted Gram matrix. The solution has a closed form. It is written into an input layer $x'=xW_{\mathrm{in}}+b_{\mathrm{in}}$ ($W_{\mathrm{in}}\in\mathbb{R}^{9\times9}$ block-diagonal, 90 parameters) in front of the frozen LSTM.
-
-\textbf{Real drift: head retraining with replay.} The 780-parameter classification head is retrained for 8 epochs on the last 45 rounds of labelled windows, replaying clean windows only for classes absent from that buffer, so classes the buffer does not contain are not forgotten.
-
-\begin{algorithm}[t]
-\caption{\tla{} on client $k$ (per round $t$)}\label{alg:tla}
-\begin{algorithmic}[1]
-\State classify incoming windows with $f_k$; receive labelled windows $\mathcal{B}_t$
-\For{each $(x,y)\in\mathcal{B}_t$}
-  \State update Page--Hinkley with $e=\mathbb{1}[f_k(x)\neq y]$
-\EndFor
-\If{alarm and no episode active} \State $t_a\gets t$ \EndIf
-\If{$t=t_a+5$}
-  \State $\hat m\gets$ \Call{Typer}{label-free features of the episode}
-  \If{$\hat m=$ virtual}
-    \State fit $(A_m,t_m)$ by Eq.~\eqref{eq:align}; set $W_{\mathrm{in}},b_{\mathrm{in}}$
-  \Else
-    \State retrain head on last 45 rounds with class replay
-  \EndIf
-\EndIf
-\State \Return no upload
-\end{algorithmic}
-\end{algorithm}
-
-\textbf{Federated adapter variant.} To measure what federation adds, the input map, a rank-8 residual bottleneck and the head form a 1{,}966-parameter adapter (7.7\,kB, 3.7\% of the model) that alarmed clients train and aggregate with FedAvg (PH-FedAdapter).
-
-% =====================================================================
-\section{Experimental Protocol}
-\textbf{Systems.} Table~\ref{tab:systems} lists all systems. PH-FedAvg and PH-FedProx re-implement the response step of drift-aware FL (detect, then retrain the full model federatedly) on our backbone and budget; they are not the official code of FedDrift or FedProx, and we make no claim about those methods. Oracle systems use ground-truth alarm times and types; they bound what better detection or typing could give but are not competitors.
-
-\begin{table}[t]
-\centering
-\caption{Systems compared. ``PH'': Page--Hinkley trigger.}\label{tab:systems}
-\small
-\begin{tabular}{lp{5.3cm}}
-\toprule
-System & Behaviour after drift \\
-\midrule
-Frozen-Global & global FedAvg model, never updated \\
-Frozen-Personal & personalised model, never updated \\
-Periodic-FedAvg & full federated retraining every 10 rounds \\
-ADWIN-FedAvg & ADWIN alarm $\rightarrow$ full federated retraining \\
-PH-FedAvg & PH alarm $\rightarrow$ full federated retraining \\
-PH-FedProx & as PH-FedAvg with a proximal term ($\mu=1$) \\
-PH-FedAdapter & PH alarm $\rightarrow$ federated 1{,}966-param.\ adapter \\
-Fixed-Align & PH alarm $\rightarrow$ always input alignment \\
-Fixed-Head & PH alarm $\rightarrow$ always head retraining \\
-\textbf{\tla{}} & PH alarm $\rightarrow$ typed local response \\
-Oracle 2/4-way & true alarms and type (2-way or 4-way) \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\textbf{Hypotheses.} Five hypotheses were fixed in advance: \tla{} beats Frozen-Personal (H1), Periodic-FedAvg (H2) and PH-FedProx (H3); PH-FedAdapter is non-inferior to PH-FedAvg within 0.010 \fone{} (H4); and \tla{} beats the best fixed response, Fixed-Head (H5).
-
-\textbf{Statistics.} The 10 evaluation seeds are 7, 11, 13, 17, 19, 23, 42, 123, 999 and 2024; detector and typer settings were chosen on separate tuning seeds (1001--1010). The unit of analysis is the seed, with $\mathrm{F1}_{\mathrm{post}}$ averaged over each scenario's variants. Each comparison is a paired two-sided Wilcoxon signed-rank test~\cite{wilcoxon1945} with a 10{,}000-resample bootstrap 95\% CI~\cite{efron1993bootstrap}, and the Holm procedure~\cite{holm1979} controls the family-wise error over the 12 tests of H1, H2, H3 and H5 on S1--S3. H4 is a non-inferiority test with a 1.0-point margin.
-
-\textbf{Pre-specification and disclosures.} The analysis plan was committed to version control before any evaluation-seed run (commit \texttt{fa73546}, 28 Oct 2026) and is released with the code. Tuning seeds 1004--1010 were viewed before some design changes and are not a pristine validation set; the comparators of H3 and H5 were chosen after tuning-seed results were seen; the benchmark was lengthened once, before any evaluation run, after a first version gave a deployable gain of only 0.6 points. The memory and DP studies (Sections~\ref{sec:recurring} and~\ref{sec:privacy}) were added after the confirmatory results, as a separate family.
-
-\textbf{Implementation.} PyTorch streaming simulator with byte-exact serialisation of every message; Adam, learning rate $10^{-3}$, weight decay $10^{-4}$, batch size 64, dropout 0.3. One 120-round, 8-client stream takes 18--40\,s on a laptop GPU (RTX 5050). Code, configurations, raw results and the analysis plan: \codeurl.
+\textbf{Protocol.} The analysis plan was committed before any evaluation run. Five hypotheses: \tla{} beats Personalized (H1), Periodic (H2) and PH + FedProx (H3); the federated adapter is non-inferior to PH + full within 0.010 \fone{} (H4); and \tla{} beats Head retraining (fixed), the best fixed response (H5). The unit of analysis is the seed; 10 evaluation seeds (7, 11, 13, 17, 19, 23, 42, 123, 999, 2024) are disjoint from the tuning seeds (1001--1010). Each test is a paired two-sided Wilcoxon signed-rank test~\cite{wilcoxon1945}, with Holm correction~\cite{holm1979} over the 12 tests of H1--H3 and H5 on S1--S3, and a bootstrap 95\% CI as a secondary summary. With 10 seeds the smallest possible two-sided Wilcoxon $p$ is $2/2^{10}=0.00195$, so the smallest possible Holm-corrected $p$ over 12 tests is $0.0234$. We treat the Holm-corrected $p$-values as the primary evidence: the CI and the test can disagree (H2). The confirmatory run comprises 14 systems $\times$ 10 drift variants (4 in S1 and 2 each in S2--S4) $\times$ 10 seeds $=1{,}400$ streams. \emph{Disclosures:} tuning seeds 1004--1010 were viewed before some design changes; the comparators of H3 and H5 were chosen after tuning results were seen; the benchmark was lengthened once, before any evaluation run; the memory, S0 and privacy studies were added afterwards and are descriptive (S0: 7 systems $\times$ 10 seeds; memory: 2 configurations $\times$ 2 S3 variants $\times$ 10 seeds).
 
 % =====================================================================
 \section{Results}
-\subsection{Detection and Typing (RQ1, RQ2)}
-Page--Hinkley on the error bit is the best detector (Fig.~\ref{fig:detectors}): on validation seeds it finds 42\% of drift onsets within 20 rounds (chance level 5\%) with a mean delay of 8.6 rounds and 0.48 false alarms per 1{,}000 windows. ADWIN finds 28\% with a delay of 14.5 rounds. Label-free detectors (prediction entropy, MMD) reach only 21\% and 14\% recall, break the false-alarm bound, and are nearly blind to real drift (recall $\le$0.09), as expected: swapping labels changes no input statistic. In the full confirmatory streams, \tla{} raised an alarm on 262 of 300 drifted clients, but with a median delay of 23 rounds, because many real onsets are gradual or partial.
-
-\begin{figure}[t]
-\centering\includegraphics[width=0.92\columnwidth]{detectors_tradeoff.pdf}
-\caption{Detector validation: recall within 20 rounds against false alarms per 1{,}000 clean windows (chance recall in brackets). Red: label-free; marker size: labels used. Dotted line: the false-alarm bound fixed in advance.}
-\label{fig:detectors}
-\end{figure}
-
-The \emph{type} of a drift is identifiable from a detected alarm: the label-free typer reaches 0.839 accuracy in leave-one-seed-out validation (majority class 0.602), with recall 0.92 for virtual and 0.72 for real drift. A finer 4-way type (sudden, gradual, recurring, sensor-level) could not be identified from detected alarms on our first, shorter benchmark (accuracy 0.46, below the 0.51 majority class), so \tla{} types 2-way only.
-
-\subsection{Accuracy After Drift (RQ3)}
-Table~\ref{tab:conf} and Fig.~\ref{fig:forest} report the 12 confirmatory tests, and Table~\ref{tab:all} all systems; Fig.~\ref{fig:curves} shows how accuracy evolves.
-
-\begin{table}[t]
-\centering
-\caption{Confirmatory tests: \tla{} minus comparator, post-change \fone{}, 10 seeds. Significant: Holm $p<0.05$ and CI excludes 0.}\label{tab:conf}
-\small
-\setlength{\tabcolsep}{3.5pt}
-\begin{tabular}{llrcrc}
-\toprule
-H & Scen. & Diff. & 95\% CI & Holm $p$ & Sig. \\
-\midrule
-H1 vs Frozen-Pers. & S1 & $+0.079$ & $[+0.055,+0.105]$ & 0.023 & \textbf{yes} \\
- & S2 & $+0.080$ & $[+0.040,+0.120]$ & 0.078 & no \\
- & S3 & $-0.050$ & $[-0.074,-0.029]$ & 0.023 & worse \\
-H2 vs Periodic & S1 & $+0.046$ & $[+0.008,+0.085]$ & 0.633 & no \\
- & S2 & $+0.057$ & $[+0.003,+0.109]$ & 0.588 & no \\
- & S3 & $-0.033$ & $[-0.070,+0.002]$ & 0.967 & no \\
-H3 vs PH-FedProx & S1 & $+0.018$ & $[-0.008,+0.047]$ & 1.000 & no \\
- & S2 & $+0.023$ & $[-0.021,+0.063]$ & 1.000 & no \\
- & S3 & $-0.052$ & $[-0.084,-0.025]$ & 0.035 & worse \\
-H5 vs Fixed-Head & S1 & $+0.004$ & $[-0.019,+0.026]$ & 1.000 & no \\
- & S2 & $-0.016$ & $[-0.054,+0.019]$ & 1.000 & no \\
- & S3 & $-0.055$ & $[-0.082,-0.031]$ & 0.023 & worse \\
-\bottomrule
-\end{tabular}
-\end{table}
 
 \begin{table*}[t]
 \centering
-\caption{Post-change \fone{} of drifted clients (mean $\pm$ std over 10 seeds) and uplink per S1 run (kB $=1{,}000$ bytes). Best non-oracle value per column in bold.}\label{tab:all}
+\caption{Post-change \fone{} of drifted clients (mean $\pm$ std over 10 seeds), \fone{} of clean clients under S1, and uplink per S1 run (kB $=1{,}000$ bytes). Bold: best non-reference system per column.}\label{tab:all}
 \small
-\begin{tabular}{lccccr}
+\setlength{\tabcolsep}{4.5pt}
+\begin{tabular}{lcccccr}
 \toprule
-System & S1 sudden & S2 gradual & S3 recurring & S4 sensor-level & Uplink S1 (kB) \\
+System & S1 sudden & S2 gradual & S3 recurring & S4 one sensor & Clean users (S1) & Uplink S1 \\
 \midrule
-Frozen-Global & $0.658\pm0.023$ & $0.590\pm0.029$ & $0.737\pm0.016$ & $0.635\pm0.030$ & 0 \\
-Frozen-Personal & $0.677\pm0.022$ & $0.612\pm0.031$ & $0.761\pm0.019$ & $0.681\pm0.034$ & 0 \\
-Periodic-FedAvg & $0.710\pm0.026$ & $0.635\pm0.021$ & $0.744\pm0.020$ & $0.726\pm0.024$ & 18{,}748 \\
-ADWIN-FedAvg & $0.699\pm0.021$ & $0.642\pm0.022$ & $0.733\pm0.021$ & $0.726\pm0.039$ & 2{,}269 \\
-PH-FedAvg & $0.704\pm0.015$ & $0.647\pm0.027$ & $0.735\pm0.014$ & $0.721\pm0.027$ & 3{,}387 \\
-PH-FedProx & $0.738\pm0.014$ & $0.669\pm0.019$ & $0.763\pm0.010$ & $0.761\pm0.024$ & 3{,}174 \\
-PH-FedAdapter & $0.710\pm0.021$ & $0.649\pm0.023$ & $0.746\pm0.016$ & $0.726\pm0.022$ & 127 \\
-PH-LocalFull (no upload) & $0.704\pm0.022$ & $0.647\pm0.029$ & $0.725\pm0.015$ & $0.722\pm0.035$ & 0 \\
-Fixed-Align & $0.707\pm0.027$ & $0.616\pm0.051$ & $0.637\pm0.021$ & $\mathbf{0.820}\pm0.043$ & 0 \\
-Fixed-Head & $0.753\pm0.022$ & $\mathbf{0.707}\pm0.027$ & $\mathbf{0.766}\pm0.014$ & $0.753\pm0.019$ & 0 \\
-\textbf{\tla{} (ours)} & $\mathbf{0.756}\pm0.050$ & $0.691\pm0.077$ & $0.711\pm0.051$ & $0.810\pm0.044$ & 0 \\
+Global (no adaptation) & $0.658\pm0.023$ & $0.590\pm0.029$ & $0.737\pm0.016$ & $0.635\pm0.030$ & -- & 0 \\
+Personalized (no adaptation) & $0.677\pm0.022$ & $0.612\pm0.031$ & $0.761\pm0.019$ & $0.681\pm0.034$ & \textbf{0.944} & 0 \\
+Periodic full retraining & $0.710\pm0.026$ & $0.635\pm0.021$ & $0.744\pm0.020$ & $0.726\pm0.024$ & 0.895 & 18{,}748 \\
+ADWIN + full retraining & $0.699\pm0.021$ & $0.642\pm0.022$ & $0.733\pm0.021$ & $0.726\pm0.039$ & 0.943 & 2{,}269 \\
+PH + full retraining & $0.704\pm0.015$ & $0.647\pm0.027$ & $0.735\pm0.014$ & $0.721\pm0.027$ & 0.940 & 3{,}387 \\
+PH + FedProx retraining & $0.738\pm0.014$ & $0.669\pm0.019$ & $0.763\pm0.010$ & $0.761\pm0.024$ & 0.942 & 3{,}174 \\
+PH + federated adapter & $0.710\pm0.021$ & $0.649\pm0.023$ & $0.746\pm0.016$ & $0.726\pm0.022$ & 0.940 & 127 \\
+PH + local full retraining & $0.704\pm0.022$ & $0.647\pm0.029$ & $0.725\pm0.015$ & $0.722\pm0.035$ & -- & 0 \\
+Input alignment (fixed) & $0.707\pm0.027$ & $0.616\pm0.051$ & $0.637\pm0.021$ & $\mathbf{0.820}\pm0.043$ & -- & 0 \\
+Head retraining (fixed) & $0.753\pm0.022$ & $\mathbf{0.707}\pm0.027$ & $\mathbf{0.766}\pm0.014$ & $0.753\pm0.019$ & 0.942 & 0 \\
+\tla{} (typed) & $\mathbf{0.756}\pm0.050$ & $0.691\pm0.077$ & $0.711\pm0.051$ & $0.810\pm0.044$ & 0.943 & 0 \\
+\tla{} + memory (descriptive) & -- & -- & $0.709\pm0.059$ & -- & -- & 0 \\
 \midrule
-\tla{} with true type & $0.783\pm0.028$ & $0.744\pm0.029$ & $0.734\pm0.019$ & $0.819\pm0.041$ & 0 \\
-Oracle 2-way & $0.779\pm0.049$ & $0.717\pm0.035$ & $0.731\pm0.020$ & $0.811\pm0.061$ & 0 \\
-Oracle 4-way & $0.779\pm0.049$ & $0.762\pm0.031$ & $0.797\pm0.018$ & $0.863\pm0.043$ & 0 \\
+\tla{} with true type & $0.783\pm0.028$ & $0.744\pm0.029$ & $0.734\pm0.019$ & $0.819\pm0.041$ & -- & 0 \\
+Oracle 2-way typing$^{\dagger}$ & $0.779\pm0.049$ & $0.717\pm0.035$ & $0.731\pm0.020$ & $0.811\pm0.061$ & -- & 0 \\
+Oracle 4-way typing$^{\dagger}$ & $0.779\pm0.049$ & $0.762\pm0.031$ & $0.797\pm0.018$ & $0.863\pm0.043$ & -- & 0 \\
 \bottomrule
+\multicolumn{7}{l}{\footnotesize $^{\dagger}$True alarm times and types. Oracle 2-way uses one-shot alignment without tracking, so it can score below \tla{} with the true type; these rows are references, not upper bounds.}
 \end{tabular}
 \end{table*}
 
-\begin{figure*}[t]
-\centering\includegraphics[width=0.95\textwidth]{recovery_curves.pdf}
-\caption{\fone{} of the drifted clients per round (mean over 10 seeds, 5-round moving average; dotted line: onset). Left: sudden rotation, where alignment recovers most of the loss. Middle: sudden label swap, where only head retraining helps. Right: recurring rotation, where adapted models fall below the frozen model whenever the drift switches off.}
-\label{fig:curves}
-\end{figure*}
-
-\emph{H1, partly supported.} \tla{} improves on the frozen personalised model on sudden drift by $+0.079$ (Holm $p=0.023$). On gradual drift the gain of $+0.080$ has a CI that excludes zero but misses the corrected threshold, so we do not claim it. On recurring drift \tla{} is significantly \emph{worse} ($-0.050$); Section~\ref{sec:recurring} explains why.
-
-\emph{H2 and H3, not supported.} \tla{} is not significantly better than periodic retraining or PH-FedProx on S1 and S2, but it reaches the same accuracy with no uplink at all; it loses to PH-FedProx on S3.
-
-\emph{H5, not supported.} \tla{} ties with always retraining the head on S1 and S2 and loses on S3. Head retraining is a strong default on this benchmark, and the deployable typer pays for its errors and its five-round delay: \tla{} with the true type would gain a further $0.027$, $0.053$ and $0.023$ on S1--S3.
+\subsection{Adapter-only federation (H4)}
+Uploading only the adapter is non-inferior to full-model retraining on every scenario (PH + full minus adapter: $-0.005$ $[-0.015,+0.005]$ on S1, $-0.002$ $[-0.013,+0.008]$ on S2, $-0.011$ $[-0.022,-0.000]$ on S3; every upper bound is below the $+0.010$ margin) and sends 96\% fewer bytes (127 vs.\ 3{,}387\,kB per S1 run, Table~\ref{tab:all}). The saving is close to the ratio of the payload sizes (3.7\%); the result is that this small payload loses nothing. Fig.~\ref{fig:cost} adds the local systems: Head retraining (fixed) and \tla{} reach equal or higher \fone{} than every federated system without any upload.
 
 \begin{figure}[t]
-\centering\includegraphics[width=0.92\columnwidth]{forest_confirmatory.pdf}
-\caption{The 12 confirmatory tests (\tla{} minus comparator, bootstrap 95\% CI). Green: significant gain; red: significant loss; grey: not significant.}
-\label{fig:forest}
+\centering\includegraphics[width=\columnwidth]{cost_vs_uplink.pdf}
+\caption{Accuracy against uplink, mean over S1--S3 and 10 seeds. Local systems (no upload) are drawn at 1\,kB.}
+\label{fig:cost}
 \end{figure}
 
-\subsection{Communication (RQ3, H4)}
-PH-FedAdapter is non-inferior to full federated retraining on every scenario (PH-FedAvg minus adapter: $-0.005$ $[-0.015,+0.005]$ on S1, $-0.002$ $[-0.013,+0.008]$ on S2, $-0.011$ $[-0.022,-0.000]$ on S3; all upper bounds below the $+0.010$ margin) while sending 96\% fewer bytes (127 vs.\ 3{,}387\,kB per S1 run). Fig.~\ref{fig:pareto} places every system on the accuracy--uplink plane: Fixed-Head and \tla{} match or exceed every federated system at zero uplink, so the saving does not come from compressing the federated update but from not needing it.
+\subsection{Clean users}
+Federation spreads drift. Under S1, periodic federated retraining lowers the \fone{} of the five clients that did not drift from 0.944 to 0.895 (about 5 points; 4.4--5.4 across the drift variants), because drifted updates enter the shared model on a fixed schedule (Table~\ref{tab:all}). Alarm-triggered retraining averages fewer, later updates and costs 0.1--0.4 points; local repairs, including \tla{}, leave clean clients essentially unchanged (0.943).
 
-\begin{figure}[t]
-\centering\includegraphics[width=0.85\columnwidth]{pareto.pdf}
-\caption{Accuracy against uplink (post-change \fone{}, mean over S1--S3 and seeds; log scale with $+1$\,kB). Fixed-Head and \tla{} match or exceed every federated system at zero uplink.}
-\label{fig:pareto}
-\end{figure}
-
-\subsection{Why Typing Matters: Asymmetric Mistakes}
-The two repairs are not interchangeable. Aligning the input against a real drift is harmful: Fixed-Align scores 0.40, 0.42 and 0.55 on the real-drift variants of S1--S3, against 0.58, 0.60 and 0.76 for doing nothing, a loss of 0.18--0.21. Retraining the head on a virtual drift is harmless but recovers less than alignment. Because the typer labels 28\% of real drifts as virtual, its errors fall on the costly side. With oracle types, a finer 4-way typing adds $+0.045$ (gradual), $+0.066$ (recurring) and $+0.052$ (sensor-level) over 2-way typing (Fig.~\ref{fig:ladder}), because it can track alignment during a ramp, restore a cached fit, and restrict alignment to one sensor. This headroom is real but cannot be reached until the 4-way type can be detected.
-
-Federation also has a cost for clients that did not drift: periodic retraining lowers their \fone{} under S1 because drifted weights enter the shared model, whereas \tla{} leaves them untouched.
-
-\begin{figure}[t]
-\centering\includegraphics[width=0.92\columnwidth]{typing_ladder.pdf}
-\caption{What typing is worth (post-change \fone{}): from the frozen model and the best fixed response, through deployable \tla{}, to \tla{} with the true type and oracle 2-way and 4-way typing.}
-\label{fig:ladder}
-\end{figure}
-
-% =====================================================================
-\section{Recurring Drift: Diagnosis and a Negative Memory Result (RQ4)}
-\label{sec:recurring}
-\textbf{Where the loss happens.} Splitting S3 into drift-on and drift-off phases locates the failure (Table~\ref{tab:s3}, Fig.~\ref{fig:offphase}). While the rotation is active, \tla{} beats the frozen model (0.692 vs.\ 0.598). Between episodes it is far worse (0.780 vs.\ 0.932). Two mechanisms explain this. (i) \emph{No revert}: the fitted map stays in place after the drift ends and is applied to clean signals. (ii) \emph{Late responses}: detection plus the typing delay mean that 18 of 36 responses start after the 15-round episode has already ended, so the client adapts to a drift that is gone.
+\subsection{Typed adaptation against the baselines (H1--H3, H5)}
+Table~\ref{tab:conf} gives the 12 confirmatory tests. \tla{} beats no adaptation on sudden drift (H1, S1: $+0.079$, Holm $p=0.023$, the smallest attainable value). On gradual drift the difference is the same size ($+0.080$) but not significant after correction ($p=0.078$), although its bootstrap CI excludes zero; we do not claim it. Against periodic retraining (H2) and PH + FedProx (H3), \tla{} is not significantly better on S1 or S2; it matches them without uplink. \textbf{H5 fails: \tla{} does not beat simply retraining the head after every alarm} (S1 $+0.004$, S2 $-0.016$, both $p=1.0$), and is significantly worse on recurring drift (S3, $-0.055$), where it also loses to no adaptation (H1, $-0.050$) and to PH + FedProx (H3, $-0.052$). Typing pays for its errors and its five-round delay: with the true type, \tla{} would gain $0.027$, $0.053$ and $0.023$ on S1--S3.
 
 \begin{table}[t]
 \centering
-\caption{S3 drifted-client \fone{} by phase (mean over seeds).}\label{tab:s3}
+\caption{Confirmatory tests, \tla{} minus comparator (post-change \fone{}, 10 seeds). Primary evidence: Holm-corrected Wilcoxon $p$ (minimum attainable 0.023).}\label{tab:conf}
 \small
-\begin{tabular}{lcccc}
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{llrcr}
 \toprule
-& \multicolumn{2}{c}{Rotation} & \multicolumn{2}{c}{Real} \\
-System & on & off & on & off \\
+H, comparator & Scen. & Diff. & 95\% CI & Holm $p$ \\
 \midrule
-\tla{} & 0.692 & 0.780 & 0.584 & 0.788 \\
-Frozen-Personal & 0.598 & 0.932 & 0.581 & 0.932 \\
+H1 Personalized & S1 & $+0.079$ & $[+0.055,+0.105]$ & \textbf{0.023} \\
+ & S2 & $+0.080$ & $[+0.040,+0.120]$ & 0.078 \\
+ & S3 & $-0.050$ & $[-0.074,-0.029]$ & \textbf{0.023} \\
+H2 Periodic & S1 & $+0.046$ & $[+0.008,+0.085]$ & 0.633 \\
+ & S2 & $+0.057$ & $[+0.003,+0.109]$ & 0.588 \\
+ & S3 & $-0.033$ & $[-0.070,+0.002]$ & 0.967 \\
+H3 PH + FedProx & S1 & $+0.018$ & $[-0.008,+0.047]$ & 1.000 \\
+ & S2 & $+0.023$ & $[-0.021,+0.063]$ & 1.000 \\
+ & S3 & $-0.052$ & $[-0.084,-0.025]$ & \textbf{0.035} \\
+H5 Head (fixed) & S1 & $+0.004$ & $[-0.019,+0.026]$ & 1.000 \\
+ & S2 & $-0.016$ & $[-0.054,+0.019]$ & 1.000 \\
+ & S3 & $-0.055$ & $[-0.082,-0.031]$ & \textbf{0.023} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
+\subsection{The cost of a wrong type}
+The two repairs are not interchangeable (Fig.~\ref{fig:mistype}). Aligning the input against a real drift makes things worse than doing nothing: 0.40, 0.42 and 0.55 \fone{} on the real-drift variants of S1--S3, against 0.58, 0.60 and 0.76 without adaptation, a loss of 0.18--0.21. Retraining the head on a virtual drift is harmless but recovers less than alignment. The type classifier reaches 0.839 accuracy in leave-one-seed-out validation, but recalls only 72\% of real drifts, so its errors fall on the costly side. This asymmetry explains why the head-retraining default is so hard to beat.
+
 \begin{figure}[t]
-\centering\includegraphics[width=0.92\columnwidth]{s3_offphase.pdf}
-\caption{Recurring drift: \fone{} of the drifted clients between episodes (mean $\pm$ std over seeds). Every response that keeps its adaptation falls below the frozen model.}
-\label{fig:offphase}
+\centering\includegraphics[width=\columnwidth]{mistype_cost.pdf}
+\caption{Real-drift variants: input alignment, the virtual-drift repair, is worse than no adaptation; head retraining recovers accuracy (mean $\pm$ std over seeds).}
+\label{fig:mistype}
 \end{figure}
 
-\textbf{Can memory fix it?} We gave each client a memory of $K$ cached adapter states. At each alarm the candidates (the original model, the current state and the cached states) are scored by their error on recent labelled windows, and the client switches to the best one if its error is within a tolerance of the client's normal error; otherwise \tla{} runs and caches its result. On tuning seeds (S3; $K\in\{0,1,2,4\}$, three tolerances, two scoring windows) the best configuration reached 0.736 against 0.735 for \tla{}: no gain. All $K$ gave identical results because a cached state was never chosen, so we did not run the evaluation-seed study.
+\subsection{Recurring drift: why typing fails, and a memory that does not help}
+Splitting S3 into drift-on and drift-off phases locates the loss (Fig.~\ref{fig:recurring}). While the rotation is active, \tla{} beats no adaptation (0.692 vs.\ 0.598), but between episodes it falls far below it (0.780 vs.\ 0.932). Two mechanisms cause this. The repair is never undone, so the input map fitted to the rotated signal is applied to clean signals; and with a median detection delay of 23 rounds plus the typing delay, 18 of 36 responses start after the 15-round episode has ended.
 
-\textbf{Why not.} The reason is statistical, and it is the main lesson of this section. Scoring on windows since the alarm never undoes (0 of 13 off-phase responses), because that window lies inside the drift episode. Scoring on the last three rounds undoes correctly 7 times but also wrongly 6 times while the drift is still on, because three rounds hold only about six labelled windows from one or two activities. \emph{With about two labelled windows per round arriving in activity blocks, an error-based rule cannot separate drift-on from drift-off within a few rounds.} This is the same limit that delays detection. A memory that recognises regimes from unlabelled signal statistics is the natural next step.
-
-% =====================================================================
-\section{Cost on the Device and Privacy (RQ5)}
-\label{sec:privacy}
-\textbf{Memory budget.} Table~\ref{tab:mem} gives the per-client memory in FP32. The model, adapter and a four-state memory cache together need under 250\,kB, and one cached state adds only 7.7\,kB. Peak memory of every adapting system is 9.2--9.8\,MB, dominated by the replay pool (8.7\,MB for the median client). Devices with less than 1\,MB of RAM would need synthetic exemplars or frozen features in place of raw replay.
-
-\begin{table}[t]
-\centering
-\caption{On-device memory per client (FP32; kB $=1{,}024$ bytes).}\label{tab:mem}
-\small
-\begin{tabular}{lr}
-\toprule
-Component or system & kB \\
-\midrule
-Deployed LSTM (53{,}260 parameters) & 208.0 \\
-Adapter (1{,}966 parameters) / input map only & 7.7 / 0.4 \\
-Page--Hinkley state & 0.06 \\
-Label buffer: align (16 rounds) / head (45 rounds) & 288 / 810 \\
-Replay pool (median client, 966 windows) & 8{,}694 \\
-Memory cache, $K=1$ / $K=4$ & 7.7 / 30.7 \\
-\midrule
-Peak: Frozen-Personal & 208 \\
-Peak: PH-FedAvg / PH-FedProx & 9{,}380 \\
-Peak: \tla{} & 9{,}720 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\textbf{Client-level DP on uploads.} The federated systems must upload updates, so we asked whether those uploads can be made differentially private~\cite{dwork2014dp}. Following client-level DP for FL~\cite{mcmahan2018dpfl}, each update (relative to the start of its episode) is clipped to $\ell_2$ norm $C$ and Gaussian noise $\mathcal{N}(0,(zC)^2I)$ is added before upload, for $z\in\{0,0.5,1,2,4\}$; $C$ is the median unclipped update norm on tuning seeds (adapter 6.10, PH-FedAvg 2.59). Privacy is reported as $(\varepsilon,\delta=10^{-5})$ per drifted client over the whole stream with a R\'enyi-DP accountant~\cite{mironov2017rdp} and no subsampling amplification. The study covers 640 runs and is descriptive.
-
-\begin{table}[t]
-\centering
-\caption{Client-level DP on uploads (10 seeds, S1--S3 pooled): post-change \fone{} of drifted clients (mean $\pm$ std over seeds) and \fone{} of clean clients.}\label{tab:dp}
-\small
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{lrrcc}
-\toprule
-System & $z$ & $\varepsilon$ & Drifted \fone{} & Clean \fone{} \\
-\midrule
-\multirow{5}{*}{PH-FedAdapter} & 0 & $\infty$ & $0.704\pm0.018$ & 0.940 \\
- & 0.5 & 55.2 & $0.276\pm0.043$ & 0.888 \\
- & 1 & 21.8 & $0.274\pm0.044$ & 0.887 \\
- & 2 & 9.4 & $0.274\pm0.045$ & 0.887 \\
- & 4 & 4.3 & $0.275\pm0.044$ & 0.887 \\
-\midrule
-\multirow{3}{*}{PH-FedAvg} & 0 & $\infty$ & $0.698\pm0.015$ & 0.940 \\
- & 0.5 & 52.5 & $0.292\pm0.039$ & 0.890 \\
- & 1--4 & 21.4--4.2 & $0.261\pm0.043$ & 0.887 \\
-\midrule
-\tla{} (no upload) & -- & 0 & $0.729\pm0.054$ & 0.943 \\
-Frozen-Personal & -- & 0 & $0.682\pm0.023$ & 0.944 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-No noisy setting is usable (Table~\ref{tab:dp}, Fig.~\ref{fig:dp}). Even mild noise ($z=0.5$, $\varepsilon\approx55$) lowers the adapter's \fone{} from 0.704 to 0.276, far below doing nothing (0.682), and the noise reaches clean clients through the shared aggregate (0.940 to 0.888). The reason is dimensional. Noise of scale $zC$ on each of $d$ coordinates has norm $zC\sqrt d$, i.e., $22C$ for the adapter ($d=1{,}966$) and $115C$ for the full model at $z=0.5$, while a clipped update has norm at most $C$. Averaging $K$ independent noise vectors shrinks their norm only by $\sqrt K\approx2.8$ for $K=8$. Client-level DP on uploads therefore needs cohorts of hundreds of clients per round. \tla{} uploads nothing and so spends no privacy budget on the upload channel; we state this as a property of the design, not as a formal guarantee for its local computation.
+\textbf{A memory does not fix it.} We gave each client a memory of $K$ cached adapter states. At each alarm the candidates (the original model, the current state and the cached states) are scored by their error on recent labelled windows, and the client switches to the best one if its error is within a tolerance of its normal error; otherwise \tla{} runs and caches the result. The configuration was selected on tuning seeds by a pre-registered rule ($K=0$, i.e., undo only; tolerance 0.02) and then run on S3 with all 10 evaluation seeds. It switched only 8 times in 20 S3 streams, and changed neither the post-change \fone{} ($0.709$ vs.\ $0.711$; difference $-0.002$ $[-0.011,+0.003]$, Wilcoxon $p=0.38$) nor the \fone{} between episodes ($0.785$ vs.\ $0.784$, $p=0.38$); a larger memory ($K=4$) gave identical results (Table~\ref{tab:all}, Fig.~\ref{fig:recurring}). The cause is statistical. On tuning seeds, scoring on windows since the alarm never undid (0 of 13 responses that started after the drift ended), because that window lies inside the drift episode; scoring on the last three rounds undid correctly 7 times but wrongly 6 times, because three rounds hold only about six labelled windows from one or two activities. \emph{With about two labelled windows per round, an error-based rule cannot tell drift-on from drift-off within a few rounds}, the same limit that delays detection. Reuse methods from stream mining~\cite{katakis2010recurring,goncalves2013rcd,gama2014recurrent} assume far more labels per decision; a label-free signature of the drift regime is the natural next step.
 
 \begin{figure}[t]
-\centering\includegraphics[width=\columnwidth]{dp_tradeoff.pdf}
-\caption{Post-change \fone{} of drifted clients against $\varepsilon$ per client ($\delta=10^{-5}$). Dashed: \tla{} (no upload); dotted: Frozen-Personal. There is a cliff, not a trade-off.}
+\centering\includegraphics[width=\columnwidth]{recurring.pdf}
+\caption{S3 recurring drift: \fone{} of drifted clients between episodes (drift off) and over the whole post-change period (mean $\pm$ std over seeds). Systems that keep their adaptation fall below no adaptation once the drift is gone.}
+\label{fig:recurring}
+\end{figure}
+
+\subsection{No drift (S0)}
+With no drift at all (S0, 10 evaluation seeds), the Page--Hinkley detector raised 0.9--1.5 false alarms per 8-client, 120-round stream, consistent with the validation rate of about 0.5 per 1{,}000 labelled windows. The repairs triggered by these false alarms barely cost accuracy: whole-stream \fone{} falls by 0.1 points for \tla{} and Head retraining (fixed) and by 0.3--0.5 points for input alignment, the federated adapter and PH + full retraining, against 0.939 with no adaptation. Periodic federated retraining, which does not wait for an alarm, loses 4.1 points ($0.899$) and uploads 18.7\,MB although nothing has changed.
+
+\subsection{Device memory and privacy of uploads}
+Per client in FP32, the model takes 208\,KiB, the adapter and each cached state 7.7\,KiB, but the replay pool dominates (8.5\,MiB for the median client), giving a peak of 9.0--9.5\,MiB for every adapting system. For the federated systems we also tested client-level differential privacy on uploads~\cite{mcmahan2018dpfl}: clipping to the median update norm and adding Gaussian noise with multiplier $z\in\{0.5,1,2,4\}$ ($\varepsilon\approx55$ to 4 per client, $\delta=10^{-5}$, R\'enyi accountant~\cite{mironov2017rdp}; 640 runs). Every noisy setting drops \fone{} from 0.70 to about 0.27, below no adaptation (Fig.~\ref{fig:dp}). The cause is dimensional: noise of norm $zC\sqrt d$ ($22C$ for the adapter at $z=0.5$) cannot be averaged down by $\sqrt 8$ clients. At this cohort size, keeping updates on the device is the only option we tested that keeps both accuracy and an unspent privacy budget.
+
+\begin{figure}[t]
+\centering\includegraphics[width=\columnwidth]{dp_cliff.pdf}
+\caption{Client-level DP on uploads (S1--S3, 10 seeds). Squares: no noise. Any noise leads to a cliff, not a trade-off.}
 \label{fig:dp}
 \end{figure}
 
 % =====================================================================
-\section{Discussion: Lessons for Practitioners}
-\textbf{Fix drift where it lives.} A sensor rotation is a $3\times3$ problem, not a 53{,}000-parameter problem. Matching the repair to the drift type gives the largest single gain in this study and costs no communication; the danger is the asymmetric error of aligning a real drift.
+\section{Limitations}
+Both detection and repair need prompt labels on the device; with delayed labels the detection delay, already the main bottleneck (median 23 rounds), would grow. We use one dataset with injected, not natural, drift and 8 clients; severities were calibrated once; no official implementation of a drift-aware FL method was run; \tla{} varies more across seeds (std 0.05--0.08) than the baselines (about 0.02); run times and memory are measured in simulation, not on a wearable device.
 
-\textbf{Spend effort on detection.} With an oracle trigger, alignment recovers 12--16 points on virtual drift (first benchmark); with the deployed detector the gain shrinks to a few points. Faster, label-efficient detection would raise every adaptive system in Table~\ref{tab:all}.
-
-\textbf{Every adaptation needs an exit.} Systems that adapt but never revert are fragile under recurring drift. With sparse labels, the exit signal cannot come from the error stream alone.
-
-\textbf{Upload only when you must.} Federated full-model retraining improves on the frozen model by just 0.02--0.03 \fone{} on S1 at 2.3--18.7\,MB of uplink and harms bystanders. If federation is needed, an adapter gives the same accuracy at 4\% of the bytes; at wearable cohort sizes, client-level DP on those uploads is not yet practical.
-
-\textbf{Limitations.} One dataset (PAMAP2, 8 clients) with injected rather than natural drift; severity calibrated once on a tuning seed; alignment assumes immediate labels and clean per-class references on the client; no official implementation of FedDrift or Flash was run; the variance of \tla{} across seeds (std 0.05--0.08) is larger than that of the baselines (about 0.02); the no-drift stream and a severity sweep were not run; memory and run times are computed or measured in simulation, not on a wearable device; the DP study covers $K=8$ only.
-
-% =====================================================================
 \section{Conclusion}
-We asked whether a wearable client can handle concept drift by itself. It can partly. A client detects drift from its error stream, though late (RQ1); it tells virtual from real drift with 84\% accuracy, and the remaining errors are costly (RQ2); local, typed or fixed responses match federated retraining at zero uplink, and a federated adapter needs only 4\% of its bytes (RQ3). It cannot yet handle recurring drift, because sparse labels do not reveal when a drift ends and a simple memory does not help (RQ4). Adapting costs about 10\,MB of RAM, mostly for replay, and client-level DP on uploads destroys accuracy at 8 clients (RQ5). Faster detection and label-free recognition of recurring regimes are the most promising next steps.
-
-\section*{Acknowledgment}
-The authors thank Dr. Ankit Jain, LNMIIT, for co-supervision and feedback.
-% NOTE: check the co-supervisor's name and title before submission.
+Drift typing helps less than it seems. The robust gains in this study come from \emph{where} adaptation happens, not from typing: uploading only a small adapter keeps accuracy at 4\% of the bytes, and local repairs protect users who did not drift. A typed choice of repair does not beat a fixed head-retraining default, because wrong types are costly and typing adds delay, and it fails on recurring drift because sparse labels cannot reveal when a drift has ended. Faster label-efficient detection and a label-free signal for ``the drift is over'' are what typed adaptation needs next. Code, configurations and raw results: \codeurl.
 
 \bibliographystyle{IEEEtran}
 \bibliography{refs}

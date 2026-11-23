@@ -1,0 +1,236 @@
+mode classifier trained on 766 episodes (0.61 virtual)
+seed 42: pretrained [1s]
+D:\drift\fl-drift-try_2\src\eval\streaming.py:36: RuntimeWarning: Mean of empty slice.
+  out["all_clients_post_f1"] = float(f1[:, first:].mean())
+D:\drift\venv\Lib\site-packages\numpy\core\_methods.py:129: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+D:\drift\fl-drift-try_2\src\eval\streaming.py:37: RuntimeWarning: Mean of empty slice.
+  out["worst_client_post_f1"] = float(f1[:, first:].mean(1).min())
+D:\drift\venv\Lib\site-packages\numpy\core\_methods.py:121: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+D:\drift\fl-drift-try_2\src\eval\streaming.py:38: RuntimeWarning: Mean of empty slice.
+  out["clean_clients_post_f1"] = float(np.mean([f1[k, first:].mean() for k in range(len(cids)) if k not in drifted])) if len(drifted) < len(cids) else float("nan")
+  S0:none                       frozen_E3b_personal      post nan pre nan rec nan clean nan up 0kB alarms 0 [28s]
+D:\drift\fl-drift-try_2\src\eval\streaming.py:36: RuntimeWarning: Mean of empty slice.
+  out["all_clients_post_f1"] = float(f1[:, first:].mean())
+D:\drift\venv\Lib\site-packages\numpy\core\_methods.py:129: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+D:\drift\fl-drift-try_2\src\eval\streaming.py:37: RuntimeWarning: Mean of empty slice.
+  out["worst_client_post_f1"] = float(f1[:, first:].mean(1).min())
+D:\drift\venv\Lib\site-packages\numpy\core\_methods.py:121: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+D:\drift\fl-drift-try_2\src\eval\streaming.py:38: RuntimeWarning: Mean of empty slice.
+  out["clean_clients_post_f1"] = float(np.mean([f1[k, first:].mean() for k in range(len(cids)) if k not in drifted])) if len(drifted) < len(cids) else float("nan")
+  S0:none                       typed_learned            post nan pre nan rec nan clean nan up 0kB alarms 1 [27s]
+D:\drift\fl-drift-try_2\src\eval\streaming.py:36: RuntimeWarning: Mean of empty slice.
+  out["all_clients_post_f1"] = float(f1[:, first:].mean())
+D:\drift\venv\Lib\site-packages\numpy\core\_methods.py:129: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+D:\drift\fl-drift-try_2\src\eval\streaming.py:37: RuntimeWarning: Mean of empty slice.
+  out["worst_client_post_f1"] = float(f1[:, first:].mean(1).min())
+D:\drift\venv\Lib\site-packages\numpy\core\_methods.py:121: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+D:\drift\fl-drift-try_2\src\eval\streaming.py:38: RuntimeWarning: Mean of empty slice.
+  out["clean_clients_post_f1"] = float(np.mean([f1[k, first:].mean() for k in range(len(cids)) if k not in drifted])) if len(drifted) < len(cids) else float("nan")
+  S0:none                       ph_head_long             post nan pre nan rec nan clean nan up 0kB alarms 1 [45s]
+D:\drift\fl-drift-try_2\src\eval\streaming.py:36: RuntimeWarning: Mean of empty slice.
+  out["all_clients_post_f1"] = float(f1[:, first:].mean())
+D:\drift\venv\Lib\site-packages\numpy\core\_methods.py:129: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+D:\drift\fl-drift-try_2\src\eval\streaming.py:37: RuntimeWarning: Mean of empty slice.
+  out["worst_client_post_f1"] = float(f1[:, first:].mean(1).min())
+D:\drift\venv\Lib\site-packages\numpy\core\_methods.py:121: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+D:\drift\fl-drift-try_2\src\eval\streaming.py:38: RuntimeWarning: Mean of empty slice.
+  out["clean_clients_post_f1"] = float(np.mean([f1[k, first:].mean() for k in range(len(cids)) if k not in drifted])) if len(drifted) < len(cids) else float("nan")
+  S0:none                       ph_align                 post nan pre nan rec nan clean nan up 0kB alarms 1 [26s]
+D:\drift\fl-drift-try_2\src\eval\streaming.py:36: RuntimeWarning: Mean of empty slice.
+  out["all_clients_post_f1"] = float(f1[:, first:].mean())
+D:\drift\venv\Lib\site-packages\numpy\core\_methods.py:129: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+D:\drift\fl-drift-try_2\src\eval\streaming.py:37: RuntimeWarning: Mean of empty slice.
+  out["worst_client_post_f1"] = float(f1[:, first:].mean(1).min())
+D:\drift\venv\Lib\site-packages\numpy\core\_methods.py:121: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+D:\drift\fl-drift-try_2\src\eval\streaming.py:38: RuntimeWarning: Mean of empty slice.
+  out["clean_clients_post_f1"] = float(np.mean([f1[k, first:].mean() for k in range(len(cids)) if k not in drifted])) if len(drifted) < len(cids) else float("nan")
+  S0:none                       ph_adapter_fed           post nan pre nan rec nan clean nan up 47kB alarms 2 [31s]
+D:\drift\fl-drift-try_2\src\eval\streaming.py:36: RuntimeWarning: Mean of empty slice.
+  out["all_clients_post_f1"] = float(f1[:, first:].mean())
+D:\drift\venv\Lib\site-packages\numpy\core\_methods.py:129: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+D:\drift\fl-drift-try_2\src\eval\streaming.py:37: RuntimeWarning: Mean of empty slice.
+  out["worst_client_post_f1"] = float(f1[:, first:].mean(1).min())
+D:\drift\venv\Lib\site-packages\numpy\core\_methods.py:121: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+D:\drift\fl-drift-try_2\src\eval\streaming.py:38: RuntimeWarning: Mean of empty slice.
+  out["clean_clients_post_f1"] = float(np.mean([f1[k, first:].mean() for k in range(len(cids)) if k not in drifted])) if len(drifted) < len(cids) else float("nan")
+  S0:none                       ph_full_fed_E5           post nan pre nan rec nan clean nan up 639kB alarms 1 [26s]
+D:\drift\fl-drift-try_2\src\eval\streaming.py:36: RuntimeWarning: Mean of empty slice.
+  out["all_clients_post_f1"] = float(f1[:, first:].mean())
+D:\drift\venv\Lib\site-packages\numpy\core\_methods.py:129: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+D:\drift\fl-drift-try_2\src\eval\streaming.py:37: RuntimeWarning: Mean of empty slice.
+  out["worst_client_post_f1"] = float(f1[:, first:].mean(1).min())
+D:\drift\venv\Lib\site-packages\numpy\core\_methods.py:121: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+D:\drift\fl-drift-try_2\src\eval\streaming.py:38: RuntimeWarning: Mean of empty slice.
+  out["clean_clients_post_f1"] = float(np.mean([f1[k, first:].mean() for k in range(len(cids)) if k not in drifted])) if len(drifted) < len(cids) else float("nan")
+  S0:none                       periodic_E3c_full_fed    post nan pre nan rec nan clean nan up 18748kB alarms 88 [67s]
+seed 123: pretrained [0s]
+D:\drift\fl-drift-try_2\src\eval\streaming.py:36: RuntimeWarning: Mean of empty slice.
+  out["all_clients_post_f1"] = float(f1[:, first:].mean())
+D:\drift\venv\Lib\site-packages\numpy\core\_methods.py:129: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+D:\drift\fl-drift-try_2\src\eval\streaming.py:37: RuntimeWarning: Mean of empty slice.
+  out["worst_client_post_f1"] = float(f1[:, first:].mean(1).min())
+D:\drift\venv\Lib\site-packages\numpy\core\_methods.py:121: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+D:\drift\fl-drift-try_2\src\eval\streaming.py:38: RuntimeWarning: Mean of empty slice.
+  out["clean_clients_post_f1"] = float(np.mean([f1[k, first:].mean() for k in range(len(cids)) if k not in drifted])) if len(drifted) < len(cids) else float("nan")
+  S0:none                       frozen_E3b_personal      post nan pre nan rec nan clean nan up 0kB alarms 0 [26s]
+D:\drift\fl-drift-try_2\src\eval\streaming.py:36: RuntimeWarning: Mean of empty slice.
+  out["all_clients_post_f1"] = float(f1[:, first:].mean())
+D:\drift\venv\Lib\site-packages\numpy\core\_methods.py:129: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+D:\drift\fl-drift-try_2\src\eval\streaming.py:37: RuntimeWarning: Mean of empty slice.
+  out["worst_client_post_f1"] = float(f1[:, first:].mean(1).min())
+D:\drift\venv\Lib\site-packages\numpy\core\_methods.py:121: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+D:\drift\fl-drift-try_2\src\eval\streaming.py:38: RuntimeWarning: Mean of empty slice.
+  out["clean_clients_post_f1"] = float(np.mean([f1[k, first:].mean() for k in range(len(cids)) if k not in drifted])) if len(drifted) < len(cids) else float("nan")
+  S0:none                       typed_learned            post nan pre nan rec nan clean nan up 0kB alarms 0 [27s]
+D:\drift\fl-drift-try_2\src\eval\streaming.py:36: RuntimeWarning: Mean of empty slice.
+  out["all_clients_post_f1"] = float(f1[:, first:].mean())
+D:\drift\venv\Lib\site-packages\numpy\core\_methods.py:129: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+D:\drift\fl-drift-try_2\src\eval\streaming.py:37: RuntimeWarning: Mean of empty slice.
+  out["worst_client_post_f1"] = float(f1[:, first:].mean(1).min())
+D:\drift\venv\Lib\site-packages\numpy\core\_methods.py:121: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+D:\drift\fl-drift-try_2\src\eval\streaming.py:38: RuntimeWarning: Mean of empty slice.
+  out["clean_clients_post_f1"] = float(np.mean([f1[k, first:].mean() for k in range(len(cids)) if k not in drifted])) if len(drifted) < len(cids) else float("nan")
+  S0:none                       ph_head_long             post nan pre nan rec nan clean nan up 0kB alarms 1 [24s]
+D:\drift\fl-drift-try_2\src\eval\streaming.py:36: RuntimeWarning: Mean of empty slice.
+  out["all_clients_post_f1"] = float(f1[:, first:].mean())
+D:\drift\venv\Lib\site-packages\numpy\core\_methods.py:129: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+D:\drift\fl-drift-try_2\src\eval\streaming.py:37: RuntimeWarning: Mean of empty slice.
+  out["worst_client_post_f1"] = float(f1[:, first:].mean(1).min())
+D:\drift\venv\Lib\site-packages\numpy\core\_methods.py:121: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+D:\drift\fl-drift-try_2\src\eval\streaming.py:38: RuntimeWarning: Mean of empty slice.
+  out["clean_clients_post_f1"] = float(np.mean([f1[k, first:].mean() for k in range(len(cids)) if k not in drifted])) if len(drifted) < len(cids) else float("nan")
+  S0:none                       ph_align                 post nan pre nan rec nan clean nan up 0kB alarms 1 [26s]
+D:\drift\fl-drift-try_2\src\eval\streaming.py:36: RuntimeWarning: Mean of empty slice.
+  out["all_clients_post_f1"] = float(f1[:, first:].mean())
+D:\drift\venv\Lib\site-packages\numpy\core\_methods.py:129: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+D:\drift\fl-drift-try_2\src\eval\streaming.py:37: RuntimeWarning: Mean of empty slice.
+  out["worst_client_post_f1"] = float(f1[:, first:].mean(1).min())
+D:\drift\venv\Lib\site-packages\numpy\core\_methods.py:121: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+D:\drift\fl-drift-try_2\src\eval\streaming.py:38: RuntimeWarning: Mean of empty slice.
+  out["clean_clients_post_f1"] = float(np.mean([f1[k, first:].mean() for k in range(len(cids)) if k not in drifted])) if len(drifted) < len(cids) else float("nan")
+  S0:none                       ph_adapter_fed           post nan pre nan rec nan clean nan up 16kB alarms 1 [28s]
+D:\drift\fl-drift-try_2\src\eval\streaming.py:36: RuntimeWarning: Mean of empty slice.
+  out["all_clients_post_f1"] = float(f1[:, first:].mean())
+D:\drift\venv\Lib\site-packages\numpy\core\_methods.py:129: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+D:\drift\fl-drift-try_2\src\eval\streaming.py:37: RuntimeWarning: Mean of empty slice.
+  out["worst_client_post_f1"] = float(f1[:, first:].mean(1).min())
+D:\drift\venv\Lib\site-packages\numpy\core\_methods.py:121: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+D:\drift\fl-drift-try_2\src\eval\streaming.py:38: RuntimeWarning: Mean of empty slice.
+  out["clean_clients_post_f1"] = float(np.mean([f1[k, first:].mean() for k in range(len(cids)) if k not in drifted])) if len(drifted) < len(cids) else float("nan")
+  S0:none                       ph_full_fed_E5           post nan pre nan rec nan clean nan up 426kB alarms 1 [28s]
+D:\drift\fl-drift-try_2\src\eval\streaming.py:36: RuntimeWarning: Mean of empty slice.
+  out["all_clients_post_f1"] = float(f1[:, first:].mean())
+D:\drift\venv\Lib\site-packages\numpy\core\_methods.py:129: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+D:\drift\fl-drift-try_2\src\eval\streaming.py:37: RuntimeWarning: Mean of empty slice.
+  out["worst_client_post_f1"] = float(f1[:, first:].mean(1).min())
+D:\drift\venv\Lib\site-packages\numpy\core\_methods.py:121: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+D:\drift\fl-drift-try_2\src\eval\streaming.py:38: RuntimeWarning: Mean of empty slice.
+  out["clean_clients_post_f1"] = float(np.mean([f1[k, first:].mean() for k in range(len(cids)) if k not in drifted])) if len(drifted) < len(cids) else float("nan")
+  S0:none                       periodic_E3c_full_fed    post nan pre nan rec nan clean nan up 18748kB alarms 88 [66s]
+seed 999: pretrained [0s]
+D:\drift\fl-drift-try_2\src\eval\streaming.py:36: RuntimeWarning: Mean of empty slice.
+  out["all_clients_post_f1"] = float(f1[:, first:].mean())
+D:\drift\venv\Lib\site-packages\numpy\core\_methods.py:129: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+D:\drift\fl-drift-try_2\src\eval\streaming.py:37: RuntimeWarning: Mean of empty slice.
+  out["worst_client_post_f1"] = float(f1[:, first:].mean(1).min())
+D:\drift\venv\Lib\site-packages\numpy\core\_methods.py:121: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+D:\drift\fl-drift-try_2\src\eval\streaming.py:38: RuntimeWarning: Mean of empty slice.
+  out["clean_clients_post_f1"] = float(np.mean([f1[k, first:].mean() for k in range(len(cids)) if k not in drifted])) if len(drifted) < len(cids) else float("nan")
+  S0:none                       frozen_E3b_personal      post nan pre nan rec nan clean nan up 0kB alarms 0 [22s]
+D:\drift\fl-drift-try_2\src\eval\streaming.py:36: RuntimeWarning: Mean of empty slice.
+  out["all_clients_post_f1"] = float(f1[:, first:].mean())
+D:\drift\venv\Lib\site-packages\numpy\core\_methods.py:129: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+D:\drift\fl-drift-try_2\src\eval\streaming.py:37: RuntimeWarning: Mean of empty slice.
+  out["worst_client_post_f1"] = float(f1[:, first:].mean(1).min())
+D:\drift\venv\Lib\site-packages\numpy\core\_methods.py:121: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+D:\drift\fl-drift-try_2\src\eval\streaming.py:38: RuntimeWarning: Mean of empty slice.
+  out["clean_clients_post_f1"] = float(np.mean([f1[k, first:].mean() for k in range(len(cids)) if k not in drifted])) if len(drifted) < len(cids) else float("nan")
+  S0:none                       typed_learned            post nan pre nan rec nan clean nan up 0kB alarms 2 [15s]
+D:\drift\fl-drift-try_2\src\eval\streaming.py:36: RuntimeWarning: Mean of empty slice.
+  out["all_clients_post_f1"] = float(f1[:, first:].mean())
+D:\drift\venv\Lib\site-packages\numpy\core\_methods.py:129: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+D:\drift\fl-drift-try_2\src\eval\streaming.py:37: RuntimeWarning: Mean of empty slice.
+  out["worst_client_post_f1"] = float(f1[:, first:].mean(1).min())
+D:\drift\venv\Lib\site-packages\numpy\core\_methods.py:121: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+D:\drift\fl-drift-try_2\src\eval\streaming.py:38: RuntimeWarning: Mean of empty slice.
+  out["clean_clients_post_f1"] = float(np.mean([f1[k, first:].mean() for k in range(len(cids)) if k not in drifted])) if len(drifted) < len(cids) else float("nan")
+  S0:none                       ph_head_long             post nan pre nan rec nan clean nan up 0kB alarms 1 [19s]
+D:\drift\fl-drift-try_2\src\eval\streaming.py:36: RuntimeWarning: Mean of empty slice.
+  out["all_clients_post_f1"] = float(f1[:, first:].mean())
+D:\drift\venv\Lib\site-packages\numpy\core\_methods.py:129: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+D:\drift\fl-drift-try_2\src\eval\streaming.py:37: RuntimeWarning: Mean of empty slice.
+  out["worst_client_post_f1"] = float(f1[:, first:].mean(1).min())
+D:\drift\venv\Lib\site-packages\numpy\core\_methods.py:121: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+D:\drift\fl-drift-try_2\src\eval\streaming.py:38: RuntimeWarning: Mean of empty slice.
+  out["clean_clients_post_f1"] = float(np.mean([f1[k, first:].mean() for k in range(len(cids)) if k not in drifted])) if len(drifted) < len(cids) else float("nan")
+  S0:none                       ph_align                 post nan pre nan rec nan clean nan up 0kB alarms 2 [21s]
+D:\drift\fl-drift-try_2\src\eval\streaming.py:36: RuntimeWarning: Mean of empty slice.
+  out["all_clients_post_f1"] = float(f1[:, first:].mean())
+D:\drift\venv\Lib\site-packages\numpy\core\_methods.py:129: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+D:\drift\fl-drift-try_2\src\eval\streaming.py:37: RuntimeWarning: Mean of empty slice.
+  out["worst_client_post_f1"] = float(f1[:, first:].mean(1).min())
+D:\drift\venv\Lib\site-packages\numpy\core\_methods.py:121: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+D:\drift\fl-drift-try_2\src\eval\streaming.py:38: RuntimeWarning: Mean of empty slice.
+  out["clean_clients_post_f1"] = float(np.mean([f1[k, first:].mean() for k in range(len(cids)) if k not in drifted])) if len(drifted) < len(cids) else float("nan")
+  S0:none                       ph_adapter_fed           post nan pre nan rec nan clean nan up 47kB alarms 2 [28s]
+D:\drift\fl-drift-try_2\src\eval\streaming.py:36: RuntimeWarning: Mean of empty slice.
+  out["all_clients_post_f1"] = float(f1[:, first:].mean())
+D:\drift\venv\Lib\site-packages\numpy\core\_methods.py:129: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+D:\drift\fl-drift-try_2\src\eval\streaming.py:37: RuntimeWarning: Mean of empty slice.
+  out["worst_client_post_f1"] = float(f1[:, first:].mean(1).min())
+D:\drift\venv\Lib\site-packages\numpy\core\_methods.py:121: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+D:\drift\fl-drift-try_2\src\eval\streaming.py:38: RuntimeWarning: Mean of empty slice.
+  out["clean_clients_post_f1"] = float(np.mean([f1[k, first:].mean() for k in range(len(cids)) if k not in drifted])) if len(drifted) < len(cids) else float("nan")
+  S0:none                       ph_full_fed_E5           post nan pre nan rec nan clean nan up 639kB alarms 1 [26s]
+D:\drift\fl-drift-try_2\src\eval\streaming.py:36: RuntimeWarning: Mean of empty slice.
+  out["all_clients_post_f1"] = float(f1[:, first:].mean())
+D:\drift\venv\Lib\site-packages\numpy\core\_methods.py:129: RuntimeWarning: invalid value encountered in scalar divide
+  ret = ret.dtype.type(ret / rcount)
+D:\drift\fl-drift-try_2\src\eval\streaming.py:37: RuntimeWarning: Mean of empty slice.
+  out["worst_client_post_f1"] = float(f1[:, first:].mean(1).min())
+D:\drift\venv\Lib\site-packages\numpy\core\_methods.py:121: RuntimeWarning: invalid value encountered in divide
+  ret = um.true_divide(
+D:\drift\fl-drift-try_2\src\eval\streaming.py:38: RuntimeWarning: Mean of empty slice.
+  out["clean_clients_post_f1"] = float(np.mean([f1[k, first:].mean() for k in range(len(cids)) if k not in drifted])) if len(drifted) < len(cids) else float("nan")
+  S0:none                       periodic_E3c_full_fed    post nan pre nan rec nan clean nan up 18748kB alarms 88 [58s]
+saved D:\drift\fl-drift-try_2\results\phase4_v2\s0_eval_1.json

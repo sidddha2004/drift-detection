@@ -1,0 +1,12 @@
+mode classifier trained on 766 episodes (0.61 virtual)
+seed 19: pretrained [0s]
+  S3:virtual_rotation_partial   typed_memory_K0_t02      post 0.775 pre 0.946 rec 55.0 clean 0.937 up 0kB alarms 3 [27s]
+  S3:virtual_rotation_partial   typed_memory_K4_t02      post 0.775 pre 0.946 rec 55.0 clean 0.937 up 0kB alarms 3 [30s]
+  S3:real_partial               typed_memory_K0_t02      post 0.739 pre 0.946 rec 40.0 clean 0.937 up 0kB alarms 2 [41s]
+  S3:real_partial               typed_memory_K4_t02      post 0.739 pre 0.946 rec 40.0 clean 0.937 up 0kB alarms 2 [35s]
+seed 23: pretrained [0s]
+  S3:virtual_rotation_partial   typed_memory_K0_t02      post 0.797 pre 0.922 rec 40.0 clean 0.952 up 0kB alarms 3 [15s]
+  S3:virtual_rotation_partial   typed_memory_K4_t02      post 0.797 pre 0.922 rec 40.0 clean 0.952 up 0kB alarms 3 [15s]
+  S3:real_partial               typed_memory_K0_t02      post 0.698 pre 0.922 rec 87.3 clean 0.952 up 0kB alarms 6 [61s]
+  S3:real_partial               typed_memory_K4_t02      post 0.698 pre 0.922 rec 87.3 clean 0.952 up 0kB alarms 6 [52s]
+saved D:\drift\fl-drift-try_2\results\phase4_v2\mem_eval_4.json

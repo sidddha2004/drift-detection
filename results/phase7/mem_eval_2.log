@@ -1,0 +1,17 @@
+mode classifier trained on 766 episodes (0.61 virtual)
+seed 2024: pretrained [0s]
+  S3:virtual_rotation_partial   typed_memory_K0_t02      post 0.798 pre 0.955 rec 45.0 clean 0.938 up 0kB alarms 2 [25s]
+  S3:virtual_rotation_partial   typed_memory_K4_t02      post 0.798 pre 0.955 rec 45.0 clean 0.938 up 0kB alarms 2 [26s]
+  S3:real_partial               typed_memory_K0_t02      post 0.724 pre 0.955 rec 36.3 clean 0.938 up 0kB alarms 4 [49s]
+  S3:real_partial               typed_memory_K4_t02      post 0.724 pre 0.955 rec 36.3 clean 0.938 up 0kB alarms 4 [27s]
+seed 7: pretrained [0s]
+  S3:virtual_rotation_partial   typed_memory_K0_t02      post 0.795 pre 0.927 rec 15.0 clean 0.957 up 0kB alarms 2 [25s]
+  S3:virtual_rotation_partial   typed_memory_K4_t02      post 0.795 pre 0.927 rec 15.0 clean 0.957 up 0kB alarms 2 [26s]
+  S3:real_partial               typed_memory_K0_t02      post 0.738 pre 0.927 rec 40.0 clean 0.957 up 0kB alarms 5 [27s]
+  S3:real_partial               typed_memory_K4_t02      post 0.738 pre 0.927 rec 40.0 clean 0.957 up 0kB alarms 5 [29s]
+seed 11: pretrained [0s]
+  S3:virtual_rotation_partial   typed_memory_K0_t02      post 0.712 pre 0.910 rec 61.3 clean 0.956 up 0kB alarms 4 [21s]
+  S3:virtual_rotation_partial   typed_memory_K4_t02      post 0.712 pre 0.910 rec 61.3 clean 0.956 up 0kB alarms 4 [21s]
+  S3:real_partial               typed_memory_K0_t02      post 0.708 pre 0.910 rec 65.7 clean 0.956 up 0kB alarms 6 [24s]
+  S3:real_partial               typed_memory_K4_t02      post 0.708 pre 0.910 rec 65.7 clean 0.956 up 0kB alarms 6 [19s]
+saved D:\drift\fl-drift-try_2\results\phase4_v2\mem_eval_2.json

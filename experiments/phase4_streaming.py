@@ -28,7 +28,7 @@ from src.detect.drift_type import FEATURE_NAMES, Memory, episode_features, serie
 from src.detect.signals import cal_signals  # noqa: E402
 
 TUNING_SIDE = set(range(1001, 1011))
-SCN_FILE = {"S1": "s1_sudden", "S2": "s2_gradual", "S3": "s3_recurring", "S4": "s4_feature"}
+SCN_FILE = {"S0": "s0_none", "S1": "s1_sudden", "S2": "s2_gradual", "S3": "s3_recurring", "S4": "s4_feature"}
 CACHE = ROOT / "results/raw/phase4"
 
 R_FULL_LOCAL = Response("full_local", "full", federated=False)
@@ -240,7 +240,7 @@ def main():
         for sv in args.variants:
             scn_key, variant = sv.split(":")
             scn = load_yaml(scn_dir(ROOT) / f"{SCN_FILE[scn_key]}.yaml")
-            m = build_schedule(scn, sev, variant, args.severity, seed, cids, classes, args.timing)
+            m = build_schedule(scn, sev, None if scn_key == "S0" else variant, args.severity, seed, cids, classes, args.timing)
             ev = events_from_manifest(m)
             for pname in args.policies:
                 pol = apply_tuned(POLICIES[pname])
